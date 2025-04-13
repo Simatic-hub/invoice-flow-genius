@@ -41,6 +41,22 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
 }) => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  
+  // State to control lazy loading of form
+  const [formLoaded, setFormLoaded] = React.useState(false);
+  
+  // Only load form content when dialog is actually open
+  React.useEffect(() => {
+    if (showCreateQuoteDialog) {
+      // Small delay to ensure dialog animation completes first
+      const timer = setTimeout(() => {
+        setFormLoaded(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setFormLoaded(false);
+    }
+  }, [showCreateQuoteDialog]);
 
   return (
     <>
@@ -55,14 +71,23 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
       >
         <DialogContent className="max-w-4xl">
           <DialogTitle>{selectedQuote ? (t('quotes.edit') || 'Edit Quote') : (t('quotes.add') || 'Add Quote')}</DialogTitle>
-          <InvoiceForm 
-            onClose={() => {
-              setShowCreateQuoteDialog(false);
-              queryClient.invalidateQueries({ queryKey: ['quotes'] });
-            }} 
-            existingInvoice={selectedQuote}
-            isQuote={true}
-          />
+          {formLoaded && (
+            <InvoiceForm 
+              onClose={() => {
+                setShowCreateQuoteDialog(false);
+                queryClient.invalidateQueries({ queryKey: ['quotes'] });
+              }} 
+              existingInvoice={selectedQuote}
+              isQuote={true}
+            />
+          )}
+          {!formLoaded && showCreateQuoteDialog && (
+            <div className="flex items-center justify-center p-6 min-h-[200px]">
+              <div className="animate-pulse text-muted-foreground">
+                {t("loading") || "Loading..."}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

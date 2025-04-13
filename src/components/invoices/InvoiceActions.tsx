@@ -41,6 +41,22 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
 }) => {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  
+  // State to control lazy loading of form
+  const [formLoaded, setFormLoaded] = useState(false);
+  
+  // Only load form content when dialog is actually open
+  React.useEffect(() => {
+    if (showCreateInvoiceDialog) {
+      // Small delay to ensure dialog animation completes first
+      const timer = setTimeout(() => {
+        setFormLoaded(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    } else {
+      setFormLoaded(false);
+    }
+  }, [showCreateInvoiceDialog]);
 
   return (
     <>
@@ -54,14 +70,25 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
         }}
       >
         <DialogContent className="max-w-4xl">
-          <DialogTitle>{selectedInvoice ? (t('edit_invoice') || 'Edit Invoice') : (t('create_invoice') || 'Create Invoice')}</DialogTitle>
-          <InvoiceForm 
-            onClose={() => {
-              setShowCreateInvoiceDialog(false);
-              queryClient.invalidateQueries({ queryKey: ['invoices'] });
-            }} 
-            existingInvoice={selectedInvoice}
-          />
+          <DialogTitle>
+            {selectedInvoice ? (t('edit_invoice') || 'Edit Invoice') : (t('create_invoice') || 'Create Invoice')}
+          </DialogTitle>
+          {formLoaded && (
+            <InvoiceForm 
+              onClose={() => {
+                setShowCreateInvoiceDialog(false);
+                queryClient.invalidateQueries({ queryKey: ['invoices'] });
+              }} 
+              existingInvoice={selectedInvoice}
+            />
+          )}
+          {!formLoaded && showCreateInvoiceDialog && (
+            <div className="flex items-center justify-center p-6 min-h-[200px]">
+              <div className="animate-pulse text-muted-foreground">
+                {t("loading") || "Loading..."}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

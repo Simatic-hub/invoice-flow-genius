@@ -1,36 +1,38 @@
 
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { InvoiceFormValues, LineItem } from './invoiceFormSchemas';
 
 export const useInvoiceCalculations = (form: UseFormReturn<InvoiceFormValues>) => {
-  // Watch for all form changes to ensure calculations update
+  // Watch for line items changes to ensure calculations update
   const lineItems = form.watch('line_items') || [];
-  form.watch();
-
-  // Enhanced calculation effect to ensure proper updates
-  useEffect(() => {
+  
+  // Debounce calculation to prevent excessive updates
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Calculate totals with a more efficient algorithm
+  const calculateTotals = useCallback(() => {
     if (!lineItems || !Array.isArray(lineItems)) return;
     
-    let subtotal = 0;
-    let vatAmount = 0;
-    
-    lineItems.forEach(item => {
-      if (!item) return;
+    // Use reduce for a single iteration through the line items
+    const totals = lineItems.reduce((acc, item) => {
+      if (!item) return acc;
       const quantity = Number(item.quantity) || 0;
       const unitPrice = Number(item.unitPrice) || 0;
       const vatRate = parseInt(item.vatRate || '0');
       
       const lineTotal = quantity * unitPrice;
-      subtotal += lineTotal;
-      vatAmount += lineTotal * (vatRate / 100);
-    });
+      acc.subtotal += lineTotal;
+      acc.vatAmount += lineTotal * (vatRate / 100);
+      
+      return acc;
+    }, { subtotal: 0, vatAmount: 0 });
     
-    const total = subtotal + vatAmount;
+    const total = totals.subtotal + totals.vatAmount;
     
-    // Update the form with the new calculated values
-    form.setValue('subtotal', subtotal, { shouldValidate: false });
-    form.setValue('vat_amount', vatAmount, { shouldValidate: false });
+    // Batch updates to minimize re-renders
+    form.setValue('subtotal', totals.subtotal, { shouldValidate: false });
+    form.setValue('vat_amount', totals.vatAmount, { shouldValidate: false });
     form.setValue('total', total, { shouldValidate: false });
     
     // Update individual line item totals
@@ -41,16 +43,34 @@ export const useInvoiceCalculations = (form: UseFormReturn<InvoiceFormValues>) =
       form.setValue(`line_items.${index}.total`, quantity * unitPrice, { shouldValidate: false });
     });
     
-    // Force re-render by triggering form state update
-    form.trigger();
+    // Trigger validation with minimal form updates
+    form.trigger(['subtotal', 'vat_amount', 'total']);
   }, [lineItems, form]);
+
+  // Enhanced calculation effect with debounce to prevent frequent recalculations
+  useEffect(() => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set a small delay to batch multiple changes
+    timeoutRef.current = setTimeout(() => {
+      calculateTotals();
+    }, 50);
+    
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [lineItems, calculateTotals]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       // Force recalculation when Enter is pressed
-      const currentItems = form.getValues('line_items') || [];
-      form.setValue('line_items', [...currentItems], { shouldDirty: true });
+      calculateTotals();
     }
   };
 

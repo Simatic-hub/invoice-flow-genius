@@ -22,14 +22,51 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Need to get clients
+  // Memoize clients to prevent unnecessary re-renders
   const clients: Client[] | undefined = queryClient.getQueryData(['clients']);
 
+  // Initialize the form with default values
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
-    defaultValues: async () => initializeForm(existingInvoice, isQuote || false, user?.id),
+    // Use a synchronous default value initially, then update it in useEffect
+    defaultValues: {
+      invoice_number: '',
+      client_id: '',
+      date: new Date(),
+      line_items: [{
+        id: crypto.randomUUID(),
+        description: '',
+        quantity: 1,
+        unit: 'pieces',
+        unitPrice: 0,
+        vatRate: '21',
+        total: 0
+      }],
+      subtotal: 0,
+      vat_amount: 0,
+      total: 0,
+      user_id: user?.id || '',
+    },
     mode: 'onChange',
   });
+  
+  // Update form values with proper initialization after component mounts
+  useEffect(() => {
+    const initializeFormValues = async () => {
+      try {
+        const initialValues = await initializeForm(existingInvoice, isQuote || false, user?.id);
+        
+        // Set each field individually to prevent whole form re-render
+        Object.entries(initialValues).forEach(([key, value]) => {
+          form.setValue(key as any, value, { shouldDirty: false });
+        });
+      } catch (error) {
+        console.error('Error initializing form:', error);
+      }
+    };
+    
+    initializeFormValues();
+  }, [form, existingInvoice, isQuote, user?.id]);
 
   const lineItems = form.watch('line_items') || [];
   
