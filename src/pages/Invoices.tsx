@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +14,7 @@ import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useInvoiceOperations, Invoice } from '@/components/invoices/useInvoiceOperations';
 import { useToast } from '@/hooks/use-toast';
+import ProjectDiagnostics from '@/components/diagnostics/ProjectDiagnostics';
 
 const Invoices = () => {
   const { user } = useAuth();
@@ -27,6 +27,38 @@ const Invoices = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [hasConfigError, setHasConfigError] = useState(false);
+
+  useEffect(() => {
+    const checkForErrors = () => {
+      try {
+        console.log('Checking for configuration errors...');
+        console.log('Current route:', window.location.pathname);
+        
+        const hasErrors = !!document.querySelector('.error-message');
+        setHasConfigError(hasErrors);
+      } catch (error) {
+        console.error('Error checking configuration:', error);
+        setHasConfigError(true);
+      }
+    };
+    
+    checkForErrors();
+    
+    const originalConsoleError = console.error;
+    console.error = function(...args) {
+      setHasConfigError(true);
+      originalConsoleError.apply(console, args);
+    };
+    
+    return () => {
+      console.error = originalConsoleError;
+    };
+  }, []);
+
+  if (hasConfigError) {
+    return <ProjectDiagnostics />;
+  }
 
   const { 
     filteredInvoices, 
@@ -95,7 +127,6 @@ const Invoices = () => {
   };
 
   useEffect(() => {
-    // Reset state when user changes
     setSelectedInvoice(null);
     setShowCreateInvoiceDialog(false);
     setShowEmailDialog(false);
@@ -103,7 +134,6 @@ const Invoices = () => {
     setIsDeleting(false);
   }, [user]);
 
-  // Prevent rerendering issues during deletion
   useEffect(() => {
     if (!isDeleting && showDeleteDialog && !selectedInvoice) {
       setShowDeleteDialog(false);
