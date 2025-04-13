@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,7 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Memoize clients to prevent unnecessary re-renders
   const clients: Client[] | undefined = queryClient.getQueryData(['clients']);
@@ -49,27 +50,53 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
     mode: 'onChange',
   });
   
+  // Memoize form initialization to prevent repeated calculations
+  const initializeFormValues = useCallback(async () => {
+    if (!user?.id || isInitialized) return;
+    
+    try {
+      console.log('Initializing form values...');
+      const initialValues = await initializeForm(existingInvoice, isQuote || false, user.id);
+      
+      // Set each field individually to prevent whole form re-render
+      Object.entries(initialValues).forEach(([key, value]) => {
+        if (key !== 'user_id') { // Skip user_id as it's not in the form schema
+          form.setValue(key as any, value, { shouldDirty: false });
+        }
+      });
+      
+      setIsInitialized(true);
+      console.log('Form initialization complete');
+    } catch (error) {
+      console.error('Error initializing form:', error);
+    }
+  }, [form, existingInvoice, isQuote, user?.id, isInitialized]);
+  
   // Update form values with proper initialization after component mounts
   useEffect(() => {
-    const initializeFormValues = async () => {
-      try {
-        const initialValues = await initializeForm(existingInvoice, isQuote || false, user?.id);
-        
-        // Set each field individually to prevent whole form re-render
-        Object.entries(initialValues).forEach(([key, value]) => {
-          if (key !== 'user_id') { // Skip user_id as it's not in the form schema
-            form.setValue(key as any, value, { shouldDirty: false });
-          }
-        });
-      } catch (error) {
-        console.error('Error initializing form:', error);
-      }
-    };
+    let isMounted = true;
     
-    initializeFormValues();
-  }, [form, existingInvoice, isQuote, user?.id]);
+    if (isMounted && !isInitialized) {
+      // Small delay to prevent UI freeze during initial render
+      const timer = setTimeout(() => {
+        initializeFormValues();
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        isMounted = false;
+      };
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [initializeFormValues, isInitialized]);
 
-  const lineItems = form.watch('line_items') || [];
+  // Memoize line items to prevent unnecessary renders
+  const lineItems = useMemo(() => {
+    return form.watch('line_items') || [];
+  }, [form.watch('line_items')]);
   
   const { 
     addLineItem, 
@@ -104,25 +131,30 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
     }
   }, [existingInvoice]);
 
-  const onSubmit = (data: InvoiceFormValues) => {
+  const onSubmit = useCallback((data: InvoiceFormValues) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     
-    const formattedData = {
-      ...data,
-      user_id: user?.id, // Add user_id here instead of in the form values
-      due_date: data.due_date ? data.due_date : null,
-      delivery_date: data.delivery_date ? data.delivery_date : null,
-      po_number: data.po_number || '',
-      notes: data.notes || '',
-      payment_info: data.payment_info || '',
-      payment_terms: data.payment_terms || '',
-      line_items: data.line_items || []
-    };
-    
-    upsertInvoice.mutate(formattedData);
-    // The onSuccess from the mutation will handle closing and invalidating queries
-  };
+    try {
+      const formattedData = {
+        ...data,
+        user_id: user?.id, // Add user_id here instead of in the form values
+        due_date: data.due_date ? data.due_date : null,
+        delivery_date: data.delivery_date ? data.delivery_date : null,
+        po_number: data.po_number || '',
+        notes: data.notes || '',
+        payment_info: data.payment_info || '',
+        payment_terms: data.payment_terms || '',
+        line_items: data.line_items || []
+      };
+      
+      upsertInvoice.mutate(formattedData);
+      // The onSuccess from the mutation will handle closing and invalidating queries
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, user?.id, upsertInvoice]);
 
   return {
     form,
@@ -141,5 +173,6 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
     handleKeyDown,
     clients: clients || [],
     upsertInvoice,
+    isInitialized,
   };
 };

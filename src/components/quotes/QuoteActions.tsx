@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, Suspense } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import InvoiceForm from '@/components/invoices/InvoiceForm';
@@ -7,6 +7,7 @@ import EmailModal from '@/components/invoices/EmailModal';
 import ConfirmDialog from '@/components/clients/ConfirmDialog';
 import { Quote } from '@/components/quotes/useQuoteOperations';
 import { useLanguage } from '@/contexts/LanguageContext';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface QuoteActionsProps {
   selectedQuote: Quote | null;
@@ -43,7 +44,7 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
   const queryClient = useQueryClient();
   
   // State to control lazy loading of form
-  const [formLoaded, setFormLoaded] = React.useState(false);
+  const [formLoaded, setFormLoaded] = useState(false);
   
   // Only load form content when dialog is actually open
   React.useEffect(() => {
@@ -51,43 +52,61 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
       // Small delay to ensure dialog animation completes first
       const timer = setTimeout(() => {
         setFormLoaded(true);
-      }, 100);
+      }, 200); // Increased delay to ensure UI is ready
       return () => clearTimeout(timer);
     } else {
       setFormLoaded(false);
     }
   }, [showCreateQuoteDialog]);
 
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+      
+      // Add a small delay before closing to prevent state updates during unmounting
+      setTimeout(() => {
+        setShowCreateQuoteDialog(false);
+      }, 50);
+    }
+  };
+
   return (
     <>
       <Dialog 
         open={showCreateQuoteDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            queryClient.invalidateQueries({ queryKey: ['quotes'] });
-          }
-          setShowCreateQuoteDialog(open);
-        }}
+        onOpenChange={handleDialogOpenChange}
       >
         <DialogContent className="max-w-4xl">
           <DialogTitle>{selectedQuote ? (t('quotes.edit') || 'Edit Quote') : (t('quotes.add') || 'Add Quote')}</DialogTitle>
-          {formLoaded && (
-            <InvoiceForm 
-              onClose={() => {
-                setShowCreateQuoteDialog(false);
-                queryClient.invalidateQueries({ queryKey: ['quotes'] });
-              }} 
-              existingInvoice={selectedQuote}
-              isQuote={true}
-            />
-          )}
-          {!formLoaded && showCreateQuoteDialog && (
-            <div className="flex items-center justify-center p-6 min-h-[200px]">
-              <div className="animate-pulse text-muted-foreground">
-                {t("loading") || "Loading..."}
+          <ErrorBoundary>
+            {formLoaded && showCreateQuoteDialog ? (
+              <Suspense fallback={
+                <div className="flex items-center justify-center p-6 min-h-[200px]">
+                  <div className="animate-pulse text-muted-foreground">
+                    {t("loading") || "Loading..."}
+                  </div>
+                </div>
+              }>
+                <InvoiceForm 
+                  onClose={() => {
+                    setFormLoaded(false);
+                    setTimeout(() => {
+                      setShowCreateQuoteDialog(false);
+                      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+                    }, 50);
+                  }} 
+                  existingInvoice={selectedQuote}
+                  isQuote={true}
+                />
+              </Suspense>
+            ) : (
+              <div className="flex items-center justify-center p-6 min-h-[200px]">
+                <div className="animate-pulse text-muted-foreground">
+                  {t("loading") || "Loading..."}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </ErrorBoundary>
         </DialogContent>
       </Dialog>
 
