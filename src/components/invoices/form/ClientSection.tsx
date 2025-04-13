@@ -47,11 +47,10 @@ const ClientSection: React.FC<ClientSectionProps> = ({
               <Select 
                 onValueChange={(value) => {
                   console.log('Select onValueChange called with:', value);
-                  field.onChange(value);
                   handleClientChange(value);
+                  field.onChange(value);
                 }}
                 value={field.value || ""}
-                defaultValue={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger className="w-full bg-white border border-input">
@@ -62,12 +61,12 @@ const ClientSection: React.FC<ClientSectionProps> = ({
                 </FormControl>
                 <SelectContent 
                   position="popper" 
-                  className="z-[200] w-full bg-white"
+                  className="z-50 max-h-80 overflow-y-auto w-full bg-white"
                   align="start"
                   sideOffset={4}
                 >
                   {clients?.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
+                    <SelectItem key={client.id} value={client.id} className="cursor-pointer hover:bg-slate-100">
                       {client.name} {client.company ? `(${client.company})` : ''}
                     </SelectItem>
                   ))}
