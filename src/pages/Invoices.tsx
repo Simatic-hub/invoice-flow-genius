@@ -1,65 +1,30 @@
+
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Search, Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
-import InvoiceForm from '@/components/invoices/InvoiceForm';
-import EmailModal from '@/components/invoices/EmailModal';
-import ConfirmDialog from '@/components/clients/ConfirmDialog';
-import InvoiceTable from '@/components/invoices/InvoiceTable';
+import { useToast } from '@/hooks/use-toast';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useInvoiceOperations, Invoice } from '@/components/invoices/useInvoiceOperations';
-import { useToast } from '@/hooks/use-toast';
 import ProjectDiagnostics from '@/components/diagnostics/ProjectDiagnostics';
+import InvoicePageHeader from '@/components/invoices/InvoicePageHeader';
+import InvoiceListContainer from '@/components/invoices/InvoiceListContainer';
+import InvoiceActions from '@/components/invoices/InvoiceActions';
+import { useDiagnostics } from '@/components/invoices/useDiagnostics';
 
 const Invoices = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { hasConfigError } = useDiagnostics();
   
+  // State management for modals and selected invoice
   const [showCreateInvoiceDialog, setShowCreateInvoiceDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [hasConfigError, setHasConfigError] = useState(false);
 
-  useEffect(() => {
-    const checkForErrors = () => {
-      try {
-        console.log('Checking for configuration errors...');
-        console.log('Current route:', window.location.pathname);
-        
-        const hasErrors = !!document.querySelector('.error-message');
-        setHasConfigError(hasErrors);
-      } catch (error) {
-        console.error('Error checking configuration:', error);
-        setHasConfigError(true);
-      }
-    };
-    
-    checkForErrors();
-    
-    const originalConsoleError = console.error;
-    console.error = function(...args) {
-      setHasConfigError(true);
-      originalConsoleError.apply(console, args);
-    };
-    
-    return () => {
-      console.error = originalConsoleError;
-    };
-  }, []);
-
-  if (hasConfigError) {
-    return <ProjectDiagnostics />;
-  }
-
+  // Custom hooks for invoice data and operations
   const { 
     filteredInvoices, 
     isLoading, 
@@ -74,6 +39,7 @@ const Invoices = () => {
     handleGeneratePdf
   } = useInvoiceOperations();
 
+  // Handler functions
   const handleSendEmail = (emailData: any) => {
     console.log('Sending email:', emailData);
 
@@ -126,6 +92,7 @@ const Invoices = () => {
     });
   };
 
+  // Reset state when user changes
   useEffect(() => {
     setSelectedInvoice(null);
     setShowCreateInvoiceDialog(false);
@@ -140,105 +107,54 @@ const Invoices = () => {
     }
   }, [isDeleting, showDeleteDialog, selectedInvoice]);
 
+  // Show diagnostics if there are configuration errors
+  if (hasConfigError) {
+    return <ProjectDiagnostics />;
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">{t('invoices') || 'Invoices'}</h1>
-        <Button onClick={() => {
+      <InvoicePageHeader 
+        onCreateInvoice={() => {
           setSelectedInvoice(null);
           setShowCreateInvoiceDialog(true);
-        }}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('create_invoice') || 'Create Invoice'}
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle>{t('all_invoices') || 'All Invoices'}</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="search" 
-                placeholder={t('search_invoices') || 'Search invoices'} 
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <InvoiceTable
-            invoices={filteredInvoices}
-            isLoading={isLoading}
-            searchQuery={searchQuery}
-            onSendEmail={(invoice) => {
-              setSelectedInvoice(invoice);
-              setShowEmailDialog(true);
-            }}
-            onEditInvoice={handleEditInvoice}
-            onChangeStatus={handleChangeStatus}
-            onDuplicateInvoice={handleDuplicateInvoice}
-            onDeleteInvoice={(invoice) => {
-              console.log('Setting selected invoice for deletion:', invoice);
-              setSelectedInvoice(invoice);
-              setShowDeleteDialog(true);
-            }}
-            onGeneratePdf={handleGeneratePdf}
-          />
-        </CardContent>
-      </Card>
-
-      <Dialog 
-        open={showCreateInvoiceDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            queryClient.invalidateQueries({ queryKey: ['invoices'] });
-          }
-          setShowCreateInvoiceDialog(open);
-        }}
-      >
-        <DialogContent className="max-w-4xl">
-          <DialogTitle>{selectedInvoice ? (t('edit_invoice') || 'Edit Invoice') : (t('create_invoice') || 'Create Invoice')}</DialogTitle>
-          <InvoiceForm 
-            onClose={() => {
-              setShowCreateInvoiceDialog(false);
-              queryClient.invalidateQueries({ queryKey: ['invoices'] });
-            }} 
-            existingInvoice={selectedInvoice}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <EmailModal 
-        open={showEmailDialog}
-        onOpenChange={setShowEmailDialog}
-        recipient={selectedInvoice?.client_name}
-        documentType="invoice"
-        documentNumber={selectedInvoice?.invoice_number || ''}
-        onSend={handleSendEmail}
+        }} 
       />
 
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={(open) => {
-          if (!open && !isDeleting) {
-            setShowDeleteDialog(false);
-          }
+      <InvoiceListContainer
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filteredInvoices={filteredInvoices}
+        isLoading={isLoading}
+        onSendEmail={(invoice) => {
+          setSelectedInvoice(invoice);
+          setShowEmailDialog(true);
         }}
-        title={t('delete_invoice') || 'Delete Invoice'}
-        description={
-          selectedInvoice
-            ? `${t('delete_invoice_confirmation') || 'Are you sure you want to delete invoice'} ${selectedInvoice.invoice_number}? 
-               ${t('this_action_cannot_be_undone') || 'This action cannot be undone.'}`
-            : t('no_invoice_selected') || 'No invoice selected'
-        }
-        onConfirm={handleDeleteInvoice}
-        confirmButtonText={t('delete') || 'Delete'}
-        cancelButtonText={t('cancel') || 'Cancel'}
-        isLoading={isDeleting || deleteInvoiceMutation.isPending}
+        onEditInvoice={handleEditInvoice}
+        onChangeStatus={handleChangeStatus}
+        onDuplicateInvoice={handleDuplicateInvoice}
+        onDeleteInvoice={(invoice) => {
+          console.log('Setting selected invoice for deletion:', invoice);
+          setSelectedInvoice(invoice);
+          setShowDeleteDialog(true);
+        }}
+        onGeneratePdf={handleGeneratePdf}
+      />
+
+      <InvoiceActions
+        selectedInvoice={selectedInvoice}
+        setSelectedInvoice={setSelectedInvoice}
+        showCreateInvoiceDialog={showCreateInvoiceDialog}
+        setShowCreateInvoiceDialog={setShowCreateInvoiceDialog}
+        showEmailDialog={showEmailDialog}
+        setShowEmailDialog={setShowEmailDialog}
+        showDeleteDialog={showDeleteDialog}
+        setShowDeleteDialog={setShowDeleteDialog}
+        isDeleting={isDeleting}
+        setIsDeleting={setIsDeleting}
+        handleSendEmail={handleSendEmail}
+        handleDeleteInvoice={handleDeleteInvoice}
+        deleteInvoiceMutation={deleteInvoiceMutation}
       />
     </div>
   );
