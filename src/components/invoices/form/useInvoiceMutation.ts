@@ -20,12 +20,13 @@ export const useInvoiceMutation = ({ onClose, existingInvoice, isQuote = false, 
 
   const upsertInvoice = useMutation({
     mutationFn: async (data: InvoiceFormValues) => {
-      const user = supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+      // Get the current user session instead of using getUser()
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !session.user) throw new Error("User not authenticated");
       
       const tableName = isQuote ? 'quotes' : 'invoices';
       const invoiceData = {
-        user_id: user.data.user?.id,
+        user_id: session.user.id,
         client_id: data.client_id,
         invoice_number: data.invoice_number,
         date: data.date.toISOString(),
@@ -62,7 +63,11 @@ export const useInvoiceMutation = ({ onClose, existingInvoice, isQuote = false, 
           response = updatedDoc;
           
           if (file) {
-            const fileName = `${user.data.user?.id}/${tableName}_${existingInvoice.id}_${file.name}`;
+            // Get session again to ensure we have the latest auth data
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (!currentSession || !currentSession.user) throw new Error("User not authenticated");
+            
+            const fileName = `${currentSession.user.id}/${tableName}_${existingInvoice.id}_${file.name}`;
             const { error: uploadError } = await supabase.storage
               .from('attachments')
               .upload(fileName, file, { upsert: true });
@@ -87,7 +92,11 @@ export const useInvoiceMutation = ({ onClose, existingInvoice, isQuote = false, 
           response = newDoc;
           
           if (file) {
-            const fileName = `${user.data.user?.id}/${tableName}_${newDoc.id}_${file.name}`;
+            // Get session again to ensure we have the latest auth data
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            if (!currentSession || !currentSession.user) throw new Error("User not authenticated");
+            
+            const fileName = `${currentSession.user.id}/${tableName}_${newDoc.id}_${file.name}`;
             const { error: uploadError } = await supabase.storage
               .from('attachments')
               .upload(fileName, file);
