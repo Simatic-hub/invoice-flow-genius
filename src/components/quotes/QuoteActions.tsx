@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/clients/ConfirmDialog';
 import { Quote } from '@/components/quotes/useQuoteOperations';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { Loader2 } from 'lucide-react';
 
 interface QuoteActionsProps {
   selectedQuote: Quote | null;
@@ -50,16 +51,21 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
   React.useEffect(() => {
     if (showCreateQuoteDialog) {
       // Small delay to ensure dialog animation completes first
+      console.log('Dialog opened, preparing to load form');
       const timer = setTimeout(() => {
         setFormLoaded(true);
+        console.log('Form loaded state set to true');
       }, 200); // Increased delay to ensure UI is ready
       return () => clearTimeout(timer);
     } else {
+      console.log('Dialog closed, setting form loaded to false');
       setFormLoaded(false);
     }
   }, [showCreateQuoteDialog]);
 
   const handleDialogOpenChange = (open: boolean) => {
+    console.log('Dialog open change:', open);
+    
     if (!open) {
       queryClient.invalidateQueries({ queryKey: ['quotes'] });
       
@@ -82,13 +88,13 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
             {formLoaded && showCreateQuoteDialog ? (
               <Suspense fallback={
                 <div className="flex items-center justify-center p-6 min-h-[200px]">
-                  <div className="animate-pulse text-muted-foreground">
-                    {t("loading") || "Loading..."}
-                  </div>
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">{t("loading") || "Loading..."}</span>
                 </div>
               }>
                 <InvoiceForm 
                   onClose={() => {
+                    console.log('Form close handler called');
                     setFormLoaded(false);
                     setTimeout(() => {
                       setShowCreateQuoteDialog(false);
@@ -101,9 +107,8 @@ const QuoteActions: React.FC<QuoteActionsProps> = ({
               </Suspense>
             ) : (
               <div className="flex items-center justify-center p-6 min-h-[200px]">
-                <div className="animate-pulse text-muted-foreground">
-                  {t("loading") || "Loading..."}
-                </div>
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">{t("loading") || "Loading..."}</span>
               </div>
             )}
           </ErrorBoundary>
