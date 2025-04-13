@@ -45,7 +45,6 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
       subtotal: 0,
       vat_amount: 0,
       total: 0,
-      user_id: user?.id || '',
     },
     mode: 'onChange',
   });
@@ -58,7 +57,9 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
         
         // Set each field individually to prevent whole form re-render
         Object.entries(initialValues).forEach(([key, value]) => {
-          form.setValue(key as any, value, { shouldDirty: false });
+          if (key !== 'user_id') { // Skip user_id as it's not in the form schema
+            form.setValue(key as any, value, { shouldDirty: false });
+          }
         });
       } catch (error) {
         console.error('Error initializing form:', error);
@@ -109,6 +110,7 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
     
     const formattedData = {
       ...data,
+      user_id: user?.id, // Add user_id here instead of in the form values
       due_date: data.due_date ? data.due_date : null,
       delivery_date: data.delivery_date ? data.delivery_date : null,
       po_number: data.po_number || '',
