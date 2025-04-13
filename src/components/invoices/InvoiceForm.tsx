@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Form } from "@/components/ui/form";
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -34,10 +34,10 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQ
 // Separate component to handle form content
 const InvoiceFormContent: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQuote = false }) => {
   const { t } = useLanguage();
-  const [isFormReady, setIsFormReady] = React.useState(false);
+  const [isFormReady, setIsFormReady] = useState(false);
   
   // Defer form initialization with setTimeout
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setIsFormReady(true);
     }, 50);

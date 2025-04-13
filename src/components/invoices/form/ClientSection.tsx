@@ -45,15 +45,19 @@ const ClientSection: React.FC<ClientSectionProps> = ({
             <FormItem className="mb-4">
               <FormLabel>{t("client") || "Client"}</FormLabel>
               <Select 
-                onValueChange={(value) => handleClientChange(value)}
-                defaultValue={field.value}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  handleClientChange(value);
+                }}
+                value={field.value || ""}
+                defaultValue={field.value || ""}
               >
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white">
                     <SelectValue placeholder={t("select_client") || "Select Client"} />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent position="popper" className="z-[200] bg-white">
                   {clients?.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name} {client.company ? `(${client.company})` : ''}
