@@ -44,6 +44,15 @@ const LineItemsSection: React.FC<LineItemsSectionProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  // Force update form calculations
+  const recalculateTotals = () => {
+    // Trigger form change event by updating a field
+    const currentItems = form.getValues('line_items');
+    if (currentItems && Array.isArray(currentItems)) {
+      form.setValue('line_items', [...currentItems], { shouldDirty: true });
+    }
+  };
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -84,7 +93,11 @@ const LineItemsSection: React.FC<LineItemsSectionProps> = ({
                           onChange={(e) => {
                             const value = parseFloat(e.target.value) || 0;
                             field.onChange(value);
-                          }} 
+                          }}
+                          onBlur={(e) => {
+                            field.onBlur();
+                            recalculateTotals();
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -101,7 +114,10 @@ const LineItemsSection: React.FC<LineItemsSectionProps> = ({
                     <FormItem>
                       <FormLabel>{t("unit") || "Unit"}</FormLabel>
                       <Select 
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          recalculateTotals();
+                        }}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -140,6 +156,10 @@ const LineItemsSection: React.FC<LineItemsSectionProps> = ({
                             const value = parseFloat(e.target.value) || 0;
                             field.onChange(value);
                           }}
+                          onBlur={(e) => {
+                            field.onBlur();
+                            recalculateTotals();
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -156,7 +176,10 @@ const LineItemsSection: React.FC<LineItemsSectionProps> = ({
                     <FormItem>
                       <FormLabel>{t("vat_percent") || "VAT %"}</FormLabel>
                       <Select 
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          recalculateTotals();
+                        }}
                         defaultValue={field.value}
                       >
                         <FormControl>

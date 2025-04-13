@@ -16,6 +16,13 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
       }
     };
 
+    // Make sure onBlur is properly passed through
+    const blurHandler = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (props.onBlur) {
+        props.onBlur(e);
+      }
+    };
+
     return (
       <input
         type={type}
@@ -25,6 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         )}
         ref={ref}
         onChange={type === 'number' ? changeHandler : props.onChange}
+        onBlur={blurHandler}
         {...props}
       />
     )

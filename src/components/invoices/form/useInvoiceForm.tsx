@@ -166,6 +166,8 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
   });
 
   const lineItems = form.watch('line_items') || [];
+  
+  // Watch for all form changes to ensure calculations update
   form.watch();
 
   useEffect(() => {
@@ -178,6 +180,7 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
     }
   }, [clients, form]);
   
+  // Enhanced calculation effect to ensure proper updates
   useEffect(() => {
     if (!lineItems || !Array.isArray(lineItems)) return;
     
@@ -197,16 +200,21 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
     
     const total = subtotal + vatAmount;
     
+    // Update the form with the new calculated values
     form.setValue('subtotal', subtotal, { shouldValidate: false });
     form.setValue('vat_amount', vatAmount, { shouldValidate: false });
     form.setValue('total', total, { shouldValidate: false });
     
+    // Update individual line item totals
     lineItems.forEach((item, index) => {
       if (!item) return;
       const quantity = Number(item.quantity) || 0;
       const unitPrice = Number(item.unitPrice) || 0;
       form.setValue(`line_items.${index}.total`, quantity * unitPrice, { shouldValidate: false });
     });
+    
+    // Force re-render by triggering form state update
+    form.trigger();
   }, [lineItems, form]);
 
   const handleClientChange = (clientId: string) => {
@@ -416,6 +424,9 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       event.preventDefault();
+      // Force recalculation when Enter is pressed
+      const currentItems = form.getValues('line_items') || [];
+      form.setValue('line_items', [...currentItems], { shouldDirty: true });
     }
   };
 
