@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,6 +32,14 @@ const ClientSection: React.FC<ClientSectionProps> = ({
   handleClientChange 
 }) => {
   const { t } = useLanguage();
+  
+  // Monitor form value changes for debugging
+  const clientId = form.watch('client_id');
+  
+  useEffect(() => {
+    console.log('Client ID in form changed to:', clientId);
+    console.log('Selected client is:', selectedClient);
+  }, [clientId, selectedClient]);
 
   return (
     <Card>
@@ -47,10 +55,12 @@ const ClientSection: React.FC<ClientSectionProps> = ({
               <Select 
                 onValueChange={(value) => {
                   console.log('Select onValueChange called with:', value);
-                  handleClientChange(value);
+                  // First update the form value
                   field.onChange(value);
+                  // Then handle client change which will update the selectedClient state
+                  handleClientChange(value);
                 }}
-                value={field.value || ""}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger className="w-full bg-white border border-input">
@@ -61,15 +71,25 @@ const ClientSection: React.FC<ClientSectionProps> = ({
                 </FormControl>
                 <SelectContent 
                   position="popper" 
-                  className="z-50 max-h-80 overflow-y-auto w-full bg-white"
+                  className="z-[9999] max-h-80 overflow-y-auto w-full bg-white"
                   align="start"
                   sideOffset={4}
                 >
-                  {clients?.map((client) => (
-                    <SelectItem key={client.id} value={client.id} className="cursor-pointer hover:bg-slate-100">
-                      {client.name} {client.company ? `(${client.company})` : ''}
-                    </SelectItem>
-                  ))}
+                  {clients && clients.length > 0 ? (
+                    clients.map((client) => (
+                      <SelectItem 
+                        key={client.id} 
+                        value={client.id} 
+                        className="cursor-pointer hover:bg-slate-100"
+                      >
+                        {client.name} {client.company ? `(${client.company})` : ''}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-2 text-center text-muted-foreground">
+                      {t("no_clients_found") || "No clients found"}
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
