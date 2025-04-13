@@ -14,7 +14,7 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
@@ -22,6 +22,7 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
+    console.error("ErrorBoundary caught an error:", error);
     // Update state so the next render will show the fallback UI.
     return { 
       hasError: true, 
@@ -30,7 +31,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error);
+    console.error("Uncaught error details:", error);
     console.error("Component stack:", errorInfo.componentStack);
     
     // Update state with error info for detailed display
@@ -67,7 +68,10 @@ class ErrorBoundary extends Component<Props, State> {
           
           <Button
             className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              this.setState({ hasError: false, error: null, errorInfo: null });
+              window.location.reload();
+            }}
           >
             Reload page
           </Button>

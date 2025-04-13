@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
-import InvoiceForm from '@/components/invoices/InvoiceForm';
+import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import EmailModal from '@/components/invoices/EmailModal';
 import ConfirmDialog from '@/components/clients/ConfirmDialog';
 import { Invoice } from '@/components/invoices/useInvoiceOperations';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+// Lazy load the InvoiceForm component
+const InvoiceForm = lazy(() => import('@/components/invoices/InvoiceForm'));
 
 interface InvoiceActionsProps {
   selectedInvoice: Invoice | null;
@@ -42,53 +46,75 @@ const InvoiceActions: React.FC<InvoiceActionsProps> = ({
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
-  // State to control lazy loading of form
-  const [formLoaded, setFormLoaded] = useState(false);
+  // State to control when to render the form content
+  const [shouldRenderForm, setShouldRenderForm] = useState(false);
   
   // Only load form content when dialog is actually open
   React.useEffect(() => {
     if (showCreateInvoiceDialog) {
       // Small delay to ensure dialog animation completes first
       const timer = setTimeout(() => {
-        setFormLoaded(true);
+        setShouldRenderForm(true);
       }, 100);
       return () => clearTimeout(timer);
     } else {
-      setFormLoaded(false);
+      setShouldRenderForm(false);
     }
   }, [showCreateInvoiceDialog]);
+
+  // Handle dialog close safely
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // Small delay to allow animation to complete before changing state
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['invoices'] });
+        setShowCreateInvoiceDialog(false);
+      }, 50);
+    } else {
+      setShowCreateInvoiceDialog(open);
+    }
+  };
 
   return (
     <>
       <Dialog 
         open={showCreateInvoiceDialog} 
-        onOpenChange={(open) => {
-          if (!open) {
-            queryClient.invalidateQueries({ queryKey: ['invoices'] });
-          }
-          setShowCreateInvoiceDialog(open);
-        }}
+        onOpenChange={handleDialogOpenChange}
       >
         <DialogContent className="max-w-4xl">
           <DialogTitle>
             {selectedInvoice ? (t('edit_invoice') || 'Edit Invoice') : (t('create_invoice') || 'Create Invoice')}
           </DialogTitle>
-          {formLoaded && (
-            <InvoiceForm 
-              onClose={() => {
-                setShowCreateInvoiceDialog(false);
-                queryClient.invalidateQueries({ queryKey: ['invoices'] });
-              }} 
-              existingInvoice={selectedInvoice}
-            />
-          )}
-          {!formLoaded && showCreateInvoiceDialog && (
-            <div className="flex items-center justify-center p-6 min-h-[200px]">
-              <div className="animate-pulse text-muted-foreground">
-                {t("loading") || "Loading..."}
+          
+          <ErrorBoundary 
+            fallback={
+              <div className="p-6 m-4 border border-red-500 bg-red-50 rounded-md">
+                <p className="text-red-600">An error occurred while loading the form. Please try again.</p>
               </div>
-            </div>
-          )}
+            }
+          >
+            {shouldRenderForm ? (
+              <Suspense fallback={
+                <div className="flex items-center justify-center p-6 min-h-[200px]">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">{t("loading") || "Loading..."}</span>
+                </div>
+              }>
+                <InvoiceForm 
+                  onClose={() => {
+                    setShowCreateInvoiceDialog(false);
+                    queryClient.invalidateQueries({ queryKey: ['invoices'] });
+                  }} 
+                  existingInvoice={selectedInvoice}
+                />
+              </Suspense>
+            ) : (
+              <div className="flex items-center justify-center p-6 min-h-[200px]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">{t("loading") || "Loading..."}</span>
+              </div>
+            )}
+          </ErrorBoundary>
         </DialogContent>
       </Dialog>
 

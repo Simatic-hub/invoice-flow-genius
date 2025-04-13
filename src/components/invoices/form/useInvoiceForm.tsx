@@ -22,6 +22,7 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState<Error | null>(null);
   
   // Memoize clients to prevent unnecessary re-renders
   const clients: Client[] | undefined = queryClient.getQueryData(['clients']);
@@ -29,7 +30,6 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
   // Initialize the form with default values
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceSchema),
-    // Use a synchronous default value initially, then update it in useEffect
     defaultValues: {
       invoice_number: '',
       client_id: '',
@@ -69,6 +69,7 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
       console.log('Form initialization complete');
     } catch (error) {
       console.error('Error initializing form:', error);
+      setInitError(error instanceof Error ? error : new Error('Unknown error initializing form'));
     }
   }, [form, existingInvoice, isQuote, user?.id, isInitialized]);
   
@@ -155,6 +156,11 @@ export const useInvoiceForm = ({ onClose, existingInvoice, isQuote = false }: Us
       setIsSubmitting(false);
     }
   }, [isSubmitting, user?.id, upsertInvoice]);
+
+  // Handle errors during initialization
+  if (initError) {
+    throw initError; // This will be caught by the ErrorBoundary
+  }
 
   return {
     form,

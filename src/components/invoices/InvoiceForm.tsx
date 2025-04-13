@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Form } from "@/components/ui/form";
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInvoiceForm } from './form/useInvoiceForm';
@@ -10,6 +11,7 @@ import DocumentDetailsSection from './form/DocumentDetailsSection';
 import LineItemsSection from './form/LineItemsSection';
 import NotesAttachmentsSection from './form/NotesAttachmentsSection';
 import PaymentInfoSection from './form/PaymentInfoSection';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface InvoiceFormProps {
   onClose: () => void;
@@ -21,12 +23,21 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQ
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
-  // Defer form initialization with React.lazy and Suspense
+  // Initialize form inside ErrorBoundary to catch any issues
+  return (
+    <ErrorBoundary>
+      <InvoiceFormContent onClose={onClose} existingInvoice={existingInvoice} isQuote={isQuote} />
+    </ErrorBoundary>
+  );
+};
+
+// Separate component to handle form content
+const InvoiceFormContent: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQuote = false }) => {
+  const { t } = useLanguage();
   const [isFormReady, setIsFormReady] = React.useState(false);
   
+  // Defer form initialization with setTimeout
   React.useEffect(() => {
-    // Use setTimeout to defer heavy initialization to the next tick
-    // This prevents UI freezing as it allows browser to complete rendering first
     const timer = setTimeout(() => {
       setIsFormReady(true);
     }, 50);
@@ -37,12 +48,28 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQ
   if (!isFormReady) {
     return (
       <div className="flex items-center justify-center p-6 min-h-[200px]">
-        <div className="animate-pulse text-muted-foreground">
-          {t("loading") || "Loading..."}
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">{t("loading") || "Loading..."}</span>
       </div>
     );
   }
+  
+  // Suspense boundary for form hooks that might have async initialization
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center p-6 min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">{t("loading") || "Loading..."}</span>
+      </div>
+    }>
+      <InvoiceFormWithHooks onClose={onClose} existingInvoice={existingInvoice} isQuote={isQuote} />
+    </Suspense>
+  );
+};
+
+// Component that loads and uses the form hooks
+const InvoiceFormWithHooks: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQuote = false }) => {
+  const { t } = useLanguage();
   
   const {
     form,
@@ -60,7 +87,17 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ onClose, existingInvoice, isQ
     handleKeyDown,
     clients,
     upsertInvoice,
+    isInitialized,
   } = useInvoiceForm({ onClose, existingInvoice, isQuote });
+  
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center p-6 min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">{t("initializing") || "Initializing..."}</span>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>

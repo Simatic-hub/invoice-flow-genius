@@ -7,11 +7,11 @@ export const useInvoiceCalculations = (form: UseFormReturn<InvoiceFormValues>) =
   // Watch for line items changes to ensure calculations update
   const lineItems = form.watch('line_items') || [];
   
-  // Debounce calculation to prevent excessive updates
+  // Use refs to handle debounce and track calculation state
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const calculationInProgressRef = useRef(false);
   
-  // Calculate totals with a more efficient algorithm
+  // Calculate totals with an efficient algorithm
   const calculateTotals = useCallback(() => {
     if (!lineItems || !Array.isArray(lineItems) || calculationInProgressRef.current) return;
     
@@ -49,8 +49,9 @@ export const useInvoiceCalculations = (form: UseFormReturn<InvoiceFormValues>) =
       
       // Trigger validation with minimal form updates
       requestAnimationFrame(() => {
-        form.trigger(['subtotal', 'vat_amount', 'total']);
-        calculationInProgressRef.current = false;
+        form.trigger(['subtotal', 'vat_amount', 'total']).finally(() => {
+          calculationInProgressRef.current = false;
+        });
       });
     } catch (error) {
       console.error('Error calculating totals:', error);
@@ -58,17 +59,17 @@ export const useInvoiceCalculations = (form: UseFormReturn<InvoiceFormValues>) =
     }
   }, [lineItems, form]);
 
-  // Enhanced calculation effect with debounce to prevent frequent recalculations
+  // Enhanced calculation effect with debounce
   useEffect(() => {
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
     
-    // Set a small delay to batch multiple changes
+    // Set a delay to batch multiple changes
     timeoutRef.current = setTimeout(() => {
       calculateTotals();
-    }, 100); // Increased debounce time for better performance
+    }, 200); // Increased debounce time for better performance
     
     return () => {
       if (timeoutRef.current) {
