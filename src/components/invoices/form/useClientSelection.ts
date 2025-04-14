@@ -30,7 +30,7 @@ export const useClientSelection = (form: UseFormReturn<InvoiceFormValues>, clien
         setSelectedClient(null);
       }
     }
-  }, [clients, form.getValues('client_id')]);
+  }, [clients, form, selectedClient]);
 
   // Handle client change
   const handleClientChange = useCallback((clientId: string) => {

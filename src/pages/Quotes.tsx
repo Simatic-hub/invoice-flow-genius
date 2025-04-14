@@ -52,15 +52,30 @@ const Quotes = () => {
   };
 
   const handleEditQuote = (quote: Quote) => {
+    console.log('Edit quote:', quote);
     setSelectedQuote(quote);
-    setShowCreateQuoteDialog(true);
+    setTimeout(() => {
+      setShowCreateQuoteDialog(true);
+    }, 0);
   };
 
   const handleDuplicateQuote = async (quoteId: string) => {
-    const duplicatedQuote = await duplicateQuoteMutation.mutate(quoteId) as unknown as Quote;
-    if (duplicatedQuote) {
-      setSelectedQuote(duplicatedQuote);
-      setShowCreateQuoteDialog(true);
+    try {
+      console.log('Duplicating quote:', quoteId);
+      const duplicatedQuote = await duplicateQuoteMutation.mutateAsync(quoteId) as unknown as Quote;
+      if (duplicatedQuote) {
+        setSelectedQuote(duplicatedQuote);
+        setTimeout(() => {
+          setShowCreateQuoteDialog(true);
+        }, 0);
+      }
+    } catch (error) {
+      console.error('Error duplicating quote:', error);
+      toast({
+        title: t('error') || 'Error',
+        description: t('failed_to_duplicate_quote') || 'Failed to duplicate quote',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -79,10 +94,24 @@ const Quotes = () => {
     
     setIsDeleting(true);
     console.log('Initiating delete for quote:', selectedQuote.id);
-    deleteQuoteMutation.mutate(selectedQuote.id);
-    setShowDeleteDialog(false);
-    setIsDeleting(false);
-    setSelectedQuote(null);
+    
+    deleteQuoteMutation.mutate(selectedQuote.id, {
+      onSuccess: () => {
+        console.log('Quote deleted successfully');
+        setShowDeleteDialog(false);
+        setIsDeleting(false);
+        setSelectedQuote(null);
+      },
+      onError: (error) => {
+        console.error('Error deleting quote:', error);
+        setIsDeleting(false);
+        toast({
+          title: t('error') || 'Error',
+          description: t('failed_to_delete_quote') || 'Failed to delete quote',
+          variant: 'destructive',
+        });
+      }
+    });
   };
 
   const handleChangeStatus = (quoteId: string, status: string) => {
@@ -117,7 +146,9 @@ const Quotes = () => {
       <QuotePageHeader 
         onCreateQuote={() => {
           setSelectedQuote(null);
-          setShowCreateQuoteDialog(true);
+          setTimeout(() => {
+            setShowCreateQuoteDialog(true);
+          }, 0);
         }} 
       />
 
@@ -128,7 +159,9 @@ const Quotes = () => {
         isLoading={isLoading}
         onSendEmail={(quote) => {
           setSelectedQuote(quote);
-          setShowEmailDialog(true);
+          setTimeout(() => {
+            setShowEmailDialog(true);
+          }, 0);
         }}
         onEditQuote={handleEditQuote}
         onChangeStatus={handleChangeStatus}
@@ -136,7 +169,9 @@ const Quotes = () => {
         onDeleteQuote={(quote) => {
           console.log('Setting selected quote for deletion:', quote);
           setSelectedQuote(quote);
-          setShowDeleteDialog(true);
+          setTimeout(() => {
+            setShowDeleteDialog(true);
+          }, 0);
         }}
         onGeneratePdf={handleGeneratePdf}
       />

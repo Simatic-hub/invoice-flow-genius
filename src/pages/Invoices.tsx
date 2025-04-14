@@ -52,15 +52,30 @@ const Invoices = () => {
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
+    console.log('Edit invoice:', invoice);
     setSelectedInvoice(invoice);
-    setShowCreateInvoiceDialog(true);
+    setTimeout(() => {
+      setShowCreateInvoiceDialog(true);
+    }, 0);
   };
 
   const handleDuplicateInvoice = async (invoiceId: string) => {
-    const duplicatedInvoice = await duplicateInvoiceMutation.mutate(invoiceId) as unknown as Invoice;
-    if (duplicatedInvoice) {
-      setSelectedInvoice(duplicatedInvoice);
-      setShowCreateInvoiceDialog(true);
+    try {
+      console.log('Duplicating invoice:', invoiceId);
+      const duplicatedInvoice = await duplicateInvoiceMutation.mutateAsync(invoiceId) as unknown as Invoice;
+      if (duplicatedInvoice) {
+        setSelectedInvoice(duplicatedInvoice);
+        setTimeout(() => {
+          setShowCreateInvoiceDialog(true);
+        }, 0);
+      }
+    } catch (error) {
+      console.error('Error duplicating invoice:', error);
+      toast({
+        title: t('error') || 'Error',
+        description: t('failed_to_duplicate_invoice') || 'Failed to duplicate invoice',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -79,10 +94,24 @@ const Invoices = () => {
     
     setIsDeleting(true);
     console.log('Initiating delete for invoice:', selectedInvoice.id);
-    deleteInvoiceMutation.mutate(selectedInvoice.id);
-    setShowDeleteDialog(false);
-    setIsDeleting(false);
-    setSelectedInvoice(null);
+    
+    deleteInvoiceMutation.mutate(selectedInvoice.id, {
+      onSuccess: () => {
+        console.log('Invoice deleted successfully');
+        setShowDeleteDialog(false);
+        setIsDeleting(false);
+        setSelectedInvoice(null);
+      },
+      onError: (error) => {
+        console.error('Error deleting invoice:', error);
+        setIsDeleting(false);
+        toast({
+          title: t('error') || 'Error',
+          description: t('failed_to_delete_invoice') || 'Failed to delete invoice',
+          variant: 'destructive',
+        });
+      }
+    });
   };
 
   const handleChangeStatus = (invoiceId: string, status: string) => {
@@ -117,7 +146,9 @@ const Invoices = () => {
       <InvoicePageHeader 
         onCreateInvoice={() => {
           setSelectedInvoice(null);
-          setShowCreateInvoiceDialog(true);
+          setTimeout(() => {
+            setShowCreateInvoiceDialog(true);
+          }, 0);
         }} 
       />
 
@@ -128,7 +159,9 @@ const Invoices = () => {
         isLoading={isLoading}
         onSendEmail={(invoice) => {
           setSelectedInvoice(invoice);
-          setShowEmailDialog(true);
+          setTimeout(() => {
+            setShowEmailDialog(true);
+          }, 0);
         }}
         onEditInvoice={handleEditInvoice}
         onChangeStatus={handleChangeStatus}
@@ -136,7 +169,9 @@ const Invoices = () => {
         onDeleteInvoice={(invoice) => {
           console.log('Setting selected invoice for deletion:', invoice);
           setSelectedInvoice(invoice);
-          setShowDeleteDialog(true);
+          setTimeout(() => {
+            setShowDeleteDialog(true);
+          }, 0);
         }}
         onGeneratePdf={handleGeneratePdf}
       />

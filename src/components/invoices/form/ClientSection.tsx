@@ -58,9 +58,9 @@ const ClientSection: React.FC<ClientSectionProps> = ({
                   // First update the form value
                   field.onChange(value);
                   // Then handle client change which will update the selectedClient state
-                  handleClientChange(value);
+                  setTimeout(() => handleClientChange(value), 0);
                 }}
-                value={field.value}
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger className="w-full bg-white border border-input">
