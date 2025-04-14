@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Home, 
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useLanguage } from "@/contexts/language";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "@/hooks/use-toast";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -50,18 +51,30 @@ interface SidebarProps {
 
 const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { profile, loading } = useUserProfile();
   const { t } = useLanguage();
+  
+  // Force a refresh of the profile data when the sidebar mounts
+  useEffect(() => {
+    // This effect intentionally left empty to ensure profile data is loaded
+    console.log("Sidebar mounted, profile:", profile, "loading:", loading);
+  }, [profile, loading]);
 
-  const navItems = [
-    { icon: Home, label: t('dashboard'), to: "/dashboard" },
-    { icon: Users, label: t('clients.title'), to: "/clients" },
-    { icon: FileText, label: t('invoices.title'), to: "/invoices" },
-    { icon: ClipboardCheck, label: t('quotes.title'), to: "/quotes" },
-    { icon: Settings, label: t('settings.title'), to: "/settings" },
-  ];
-
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // We don't need to navigate here as the AuthProvider will handle redirection
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: t('error'),
+        description: t('auth.logout.failed'),
+        variant: "destructive",
+      });
+    }
+  };
+  
   if (isMobile && !isSidebarOpen) return null;
 
   return (
@@ -84,7 +97,13 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
 
       <div className="flex-1 px-3 py-4 overflow-y-auto">
         <nav className="flex flex-col gap-1">
-          {navItems.map((item) => (
+          {[
+            { icon: Home, label: t('dashboard'), to: "/dashboard" },
+            { icon: Users, label: t('clients.title'), to: "/clients" },
+            { icon: FileText, label: t('invoices.title'), to: "/invoices" },
+            { icon: ClipboardCheck, label: t('quotes.title'), to: "/quotes" },
+            { icon: Settings, label: t('settings.title'), to: "/settings" }
+          ].map((item) => (
             <NavItem
               key={item.to}
               icon={item.icon}
@@ -96,7 +115,7 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 mb-1 font-normal text-sidebar-foreground hover:bg-sidebar-accent/20"
-            onClick={signOut}
+            onClick={handleSignOut}
           >
             <LogOut size={20} />
             <span>{t('logout')}</span>
@@ -108,16 +127,16 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
         <div className="flex items-center gap-3">
           <Avatar className="w-8 h-8 bg-sidebar-accent text-sidebar-accent-foreground">
             <AvatarFallback>
-              {!loading && profile
-                ? `${(profile.first_name?.[0] || "")}${(profile.last_name?.[0] || "")}`.toUpperCase()
+              {!loading && profile && profile.first_name && profile.last_name
+                ? `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
                 : "?"}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-sidebar-foreground">
-              {!loading && profile 
-                ? `${profile.first_name || ""} ${profile.last_name || ""}` 
-                : t('loading')}
+              {!loading && profile && (profile.first_name || profile.last_name) 
+                ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() 
+                : user?.email || t('loading')}
             </span>
             <span className="text-xs text-sidebar-foreground/70">{t('free.version')}</span>
           </div>

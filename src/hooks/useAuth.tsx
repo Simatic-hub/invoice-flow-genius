@@ -3,6 +3,7 @@ import { useState, useEffect, createContext, useContext } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 type AuthContextType = {
   session: Session | null;
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('AuthProvider mounted');
@@ -57,6 +59,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
+          
+          // Handle redirects based on auth state changes
+          if (event === 'SIGNED_IN') {
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 0);
+          } else if (event === 'SIGNED_OUT') {
+            setTimeout(() => {
+              navigate('/login');
+            }, 0);
+          }
         }
       }
     );
@@ -69,7 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   // If we encountered an error during initialization, log it
   useEffect(() => {
@@ -151,6 +164,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Logged out",
         description: "You have been successfully logged out.",
       });
+      
+      // Navigate to login page
+      navigate('/login');
     } catch (error: any) {
       console.error('Logout error:', error);
       toast({
@@ -158,6 +174,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setLoading(false);
     }

@@ -12,7 +12,7 @@ import Login from './pages/Login';
 import Quotes from './pages/Quotes';
 import { useAuth } from './hooks/useAuth';
 import ErrorBoundary from './components/ErrorBoundary';
-import { useLanguage } from './contexts/LanguageContext';
+import { useLanguage } from './contexts/language';
 
 // Define the correct interfaces for the route components
 interface PrivateRouteProps {
@@ -110,14 +110,12 @@ function App() {
           } 
         />
         
-        {/* Root path redirects to dashboard if authenticated, login if not */}
+        {/* Root path ALWAYS redirects to login first */}
         <Route 
           path="/" 
           element={
             loading ? (
               <div className="flex items-center justify-center h-screen">{t('loading')}</div>
-            ) : user ? (
-              <Navigate to="/dashboard" replace />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -140,12 +138,10 @@ function App() {
           <Route path="/settings" element={<Settings />} />
         </Route>
         
-        {/* Catch-all route - redirects to login if not authenticated */}
+        {/* Catch-all route - redirects to login */}
         <Route path="*" element={
           loading ? (
             <div className="flex items-center justify-center h-screen">{t('loading')}</div>
-          ) : user ? (
-            <Navigate to="/dashboard" replace />
           ) : (
             <Navigate to="/login" replace />
           )

@@ -64,6 +64,27 @@ export const dutchTranslations: TranslationRecord = {
   'create_invoice': 'Factuur Aanmaken',
   'update_invoice': 'Factuur Bijwerken',
   'show_structured_message': 'Toon Gestructureerd Bericht',
+  'delivery_date': 'Leverdatum',
+  'invoice_details': 'Factuurgegevens',
+  'invoice_number': 'Factuurnummer',
+  'date': 'Datum',
+  'due_date': 'Vervaldatum',
+  'description': 'Omschrijving',
+  'unit': 'Eenheid',
+  'price': 'Prijs',
+  'add_notes_placeholder': 'Voeg notities toe voor de klant...',
+  'notes': 'Notities',
+  'attachment': 'Bijlage',
+  'payment_details': 'Betalingsgegevens',
+  
+  // Units of measurement
+  'pieces': 'Stuks',
+  'boxes': 'Dozen',
+  'hours': 'Uren',
+  'days': 'Dagen',
+  'square_meters': 'm²',
+  'liters': 'Liters',
+  'kilograms': 'kg',
   
   // Auth
   'auth.login.success': 'Inloggen Succesvol',
@@ -130,7 +151,6 @@ export const dutchTranslations: TranslationRecord = {
   'email_sent_description': 'De factuur is per e-mail verzonden naar',
   'generating_pdf': 'PDF Genereren',
   'generating_pdf_description': 'Uw factuur-PDF wordt voorbereid voor downloaden.',
-  'date': 'Datum',
   
   // Quotes
   'quotes.add': 'Offerte Toevoegen',
@@ -156,12 +176,17 @@ export const dutchTranslations: TranslationRecord = {
   'settings.profile.last.name': 'Achternaam',
   'settings.profile.email': 'E-mail',
   'settings.profile.phone': 'Telefoonnummer',
+  'settings.profile.information': 'Profielinformatie',
+  'settings.profile.update': 'Profiel bijwerken',
   'settings.save.changes': 'Wijzigingen Opslaan',
   'settings.business.name': 'Bedrijfsnaam',
   'settings.business.address': 'Bedrijfsadres',
   'settings.business.vat': 'BTW-nummer',
   'settings.business.currency': 'Valuta',
+  'settings.business.information': 'Bedrijfsinformatie',
+  'settings.business.update': 'Bedrijfsgegevens bijwerken',
   'settings.manage': 'Beheren',
+  'payment_methods': 'Betaalmethoden',
   
   // Dashboard
   'dashboard.recent.activity': 'Recente Activiteit',
