@@ -1,4 +1,3 @@
-
 import { TranslationRecord } from "../types";
 
 export const dutchTranslations: TranslationRecord = {
@@ -31,20 +30,14 @@ export const dutchTranslations: TranslationRecord = {
   'delete': 'Verwijderen',
   'edit': 'Bewerken',
   'search': 'Zoeken',
+  
+  // Invoice-related translations
   'all_invoices': 'Alle Facturen',
   'invoice_number': 'Factuur #',
   'client_information': 'Klantinformatie',
   'select_client': 'Selecteer Klant',
   'line_items': 'Artikelen',
   'add_line_item': 'Artikel Toevoegen',
-  'profile_created': 'Nieuw profiel succesvol aangemaakt',
-  'profile_updated': 'Profiel succesvol bijgewerkt',
-  'failed_to_fetch_profile_data': 'Kan profielgegevens niet ophalen',
-  'failed_to_create_profile': 'Kan geen nieuw profiel aanmaken',
-  'failed_to_update_profile': 'Kan profiel niet bijwerken',
-  'business_settings_updated': 'Bedrijfsinstellingen succesvol bijgewerkt',
-  'failed_to_fetch_business_data': 'Kan bedrijfsgegevens niet ophalen',
-  'failed_to_update_business_settings': 'Kan bedrijfsinstellingen niet bijwerken',
   'notes_attachments': 'Notities & Bijlagen',
   'payment_information': 'Betalingsinformatie',
   'payment_terms': 'Betalingsvoorwaarden',
@@ -345,4 +338,3 @@ export const dutchTranslations: TranslationRecord = {
   'settings.bing_jobs': 'Bing Jobs',
   'settings.yahoo_jobs': 'Yahoo Jobs',
 };
-
