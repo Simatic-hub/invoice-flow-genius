@@ -1,0 +1,46 @@
+
+import { TranslationRecord } from "../../types";
+
+export const commonTranslations: Partial<TranslationRecord> = {
+  // Common translations
+  'app.name': 'InvoiceFlow Genius',
+  'login': 'Inloggen',
+  'register': 'Registreren',
+  'logout': 'Uitloggen',
+  'free.version': 'Gratis Versie',
+  'contact': 'Contact',
+  'pricing': 'Prijs',
+  'loading': 'Laden...',
+  'view.all': 'Bekijk Alles',
+  'dashboard': 'Dashboard',
+  'welcome.back': 'Welkom terug bij uw dashboard',
+  'error': 'Fout',
+  'success': 'Succes',
+  'create': 'Maken',
+  'save': 'Opslaan',
+  'cancel': 'Annuleren',
+  'delete': 'Verwijderen',
+  'edit': 'Bewerken',
+  'search': 'Zoeken',
+  'from.last.month': 'ten opzichte van vorige maand',
+  'new.this.month': 'nieuw deze maand',
+  'year.over.year': 'jaar op jaar',
+  'increase': 'stijging',
+  'decrease': 'daling',
+  'email': 'E-mail',
+  'date': 'Datum',
+  'description': 'Omschrijving',
+  'unit': 'Eenheid',
+  'price': 'Prijs',
+  'notes': 'Notities',
+  'attachment': 'Bijlage',
+  
+  // Units of measurement
+  'pieces': 'Stuks',
+  'boxes': 'Dozen',
+  'hours': 'Uren',
+  'days': 'Dagen',
+  'square_meters': 'm²',
+  'liters': 'Liters',
+  'kilograms': 'kg',
+};
