@@ -7,7 +7,7 @@ import { Toaster } from './components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider } from './contexts/language';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 

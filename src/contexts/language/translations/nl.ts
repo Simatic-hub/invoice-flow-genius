@@ -76,6 +76,7 @@ export const dutchTranslations: TranslationRecord = {
   'notes': 'Notities',
   'attachment': 'Bijlage',
   'payment_details': 'Betalingsgegevens',
+  'payment_methods': 'Betaalmethoden',
   
   // Units of measurement
   'pieces': 'Stuks',
@@ -108,6 +109,7 @@ export const dutchTranslations: TranslationRecord = {
   'auth.password.mismatch': 'Wachtwoorden komen niet overeen',
   'auth.password.length': 'Wachtwoord moet minimaal 6 tekens bevatten',
   'auth.terms.agreement': 'Door verder te gaan, gaat u akkoord met onze Servicevoorwaarden en Privacybeleid.',
+  'auth.logout.failed': 'Uitloggen mislukt. Probeer het opnieuw.',
   
   // Navigation and sections
   'clients.title': 'Klanten',
@@ -120,7 +122,6 @@ export const dutchTranslations: TranslationRecord = {
   'quotes.title': 'Offertes',
   'settings.title': 'Instellingen',
   'invoices': 'Facturen',
-  'due_date': 'Vervaldatum',
   'client': 'Klant',
   'amount': 'Bedrag',
   'status': 'Status',
@@ -186,7 +187,6 @@ export const dutchTranslations: TranslationRecord = {
   'settings.business.information': 'Bedrijfsinformatie',
   'settings.business.update': 'Bedrijfsgegevens bijwerken',
   'settings.manage': 'Beheren',
-  'payment_methods': 'Betaalmethoden',
   
   // Dashboard
   'dashboard.recent.activity': 'Recente Activiteit',
@@ -255,7 +255,6 @@ export const dutchTranslations: TranslationRecord = {
   'settings.plan_details': 'Abonnementsdetails',
   'settings.usage': 'Gebruik',
   'settings.invoices_and_billing': 'Facturen en facturering',
-  'settings.payment_methods': 'Betaalmethoden',
   'settings.cancel_subscription': 'Abonnement opzeggen',
   'settings.company_profile': 'Bedrijfsprofiel',
   'settings.business_details': 'Bedrijfsgegevens',
@@ -346,3 +345,4 @@ export const dutchTranslations: TranslationRecord = {
   'settings.bing_jobs': 'Bing Jobs',
   'settings.yahoo_jobs': 'Yahoo Jobs',
 };
+
