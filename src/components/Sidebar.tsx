@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/language";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface NavItemProps {
