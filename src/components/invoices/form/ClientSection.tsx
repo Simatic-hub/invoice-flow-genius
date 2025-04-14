@@ -44,14 +44,14 @@ const ClientSection: React.FC<ClientSectionProps> = ({
   return (
     <Card>
       <CardContent className="pt-6">
-        <h3 className="text-lg font-semibold mb-4">{t("client_information") || "Client Information"}</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("client_information")}</h3>
         
         <FormField
           control={form.control}
           name="client_id"
           render={({ field }) => (
             <FormItem className="mb-4">
-              <FormLabel>{t("client") || "Client"}</FormLabel>
+              <FormLabel>{t("client")}</FormLabel>
               <Select 
                 onValueChange={(value) => {
                   console.log('Select onValueChange called with:', value);
@@ -65,7 +65,7 @@ const ClientSection: React.FC<ClientSectionProps> = ({
                 <FormControl>
                   <SelectTrigger className="w-full bg-white border border-input">
                     <SelectValue 
-                      placeholder={t("select_client") || "Select Client"} 
+                      placeholder={t("select_client")} 
                     />
                   </SelectTrigger>
                 </FormControl>
@@ -87,7 +87,7 @@ const ClientSection: React.FC<ClientSectionProps> = ({
                     ))
                   ) : (
                     <div className="p-2 text-center text-muted-foreground">
-                      {t("no_clients_found") || "No clients found"}
+                      {t("no_clients_found")}
                     </div>
                   )}
                 </SelectContent>
@@ -116,13 +116,13 @@ const ClientSection: React.FC<ClientSectionProps> = ({
               <p>{selectedClient.country}</p>
             )}
             {selectedClient.vat_number && (
-              <p className="mt-2">{t("vat") || "VAT"}: {selectedClient.vat_number}</p>
+              <p className="mt-2">{t("vat")}: {selectedClient.vat_number}</p>
             )}
             {selectedClient.email && (
-              <p>{t("email") || "Email"}: {selectedClient.email}</p>
+              <p>{t("email")}: {selectedClient.email}</p>
             )}
             {selectedClient.phone && (
-              <p>{t("phone") || "Phone"}: {selectedClient.phone}</p>
+              <p>{t("phone")}: {selectedClient.phone}</p>
             )}
           </div>
         )}

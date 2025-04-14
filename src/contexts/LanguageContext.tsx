@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type Language = 'en' | 'nl' | 'fr';
@@ -457,7 +456,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.billing': 'Facturering & Abonnement',
     'settings.billing.manage': 'Beheer uw factureringsinformatie en abonnementsgegevens',
     'settings.billing.current.plan': 'Huidig Abonnement',
-    'settings.billing.payment.methods': 'Betaalmethoden',
+    'settings.billing.payment_methods': 'Betaalmethoden',
     'settings.billing.no.payment.methods': 'U heeft nog geen betaalmethoden toegevoegd.',
     'settings.billing.add.payment': 'Betaalmethode Toevoegen',
     
@@ -757,7 +756,7 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.billing': 'Facturation & Abonnement',
     'settings.billing.manage': 'Gérez vos informations de facturation et les détails de votre abonnement',
     'settings.billing.current.plan': 'Plan actuel',
-    'settings.billing.payment.methods': 'Moyens de paiement',
+    'settings.billing.payment_methods': 'Moyens de paiement',
     'settings.billing.no.payment.methods': 'Vous n\'avez pas encore ajouté de moyens de paiement.',
     'settings.billing.add.payment': 'Ajouter un moyen de paiement',
     

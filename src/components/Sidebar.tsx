@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface NavItemProps {
   icon: React.ElementType;
@@ -50,7 +51,7 @@ interface SidebarProps {
 const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
   const { signOut } = useAuth();
-  const { profile } = useUserProfile();
+  const { profile, loading } = useUserProfile();
   const { t } = useLanguage();
 
   const navItems = [
@@ -105,16 +106,18 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
 
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-sidebar-accent rounded-full flex items-center justify-center text-sidebar-accent-foreground">
-            <span className="text-sm font-medium">
-              {profile
+          <Avatar className="w-8 h-8 bg-sidebar-accent text-sidebar-accent-foreground">
+            <AvatarFallback>
+              {!loading && profile
                 ? `${(profile.first_name?.[0] || "")}${(profile.last_name?.[0] || "")}`.toUpperCase()
                 : "?"}
-            </span>
-          </div>
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-sidebar-foreground">
-              {profile ? `${profile.first_name || ""} ${profile.last_name || ""}` : t('loading')}
+              {!loading && profile 
+                ? `${profile.first_name || ""} ${profile.last_name || ""}` 
+                : t('loading')}
             </span>
             <span className="text-xs text-sidebar-foreground/70">{t('free.version')}</span>
           </div>
