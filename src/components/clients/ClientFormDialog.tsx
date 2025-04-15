@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { isValidPhoneNumber, CountryCode } from 'libphonenumber-js';
+import { useLanguage } from '@/contexts/language';
 
 const clientFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -44,6 +45,7 @@ interface ClientFormDialogProps {
 export function ClientFormDialog({ open, onOpenChange, onClientCreated, existingClient }: ClientFormDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [phoneCountry, setPhoneCountry] = useState('us');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,8 +78,8 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
   const onSubmit = async (data: ClientFormValues) => {
     if (!user) {
       toast({
-        title: "Authentication Error",
-        description: "You must be signed in to create a client",
+        title: t("error") || "Authentication Error",
+        description: t("auth.required") || "You must be signed in to create a client",
         variant: "destructive",
       });
       return;
@@ -105,8 +107,8 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
         if (error) throw error;
 
         toast({
-          title: "Client Updated",
-          description: "The client has been updated successfully.",
+          title: t("client.updated") || "Client Updated",
+          description: t("client.updated.description") || "The client has been updated successfully.",
         });
       } else {
         const { data: client, error } = await supabase
@@ -129,8 +131,8 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
         if (error) throw error;
 
         toast({
-          title: "Client Created",
-          description: "The client has been created successfully.",
+          title: t("client.added") || "Client Created",
+          description: t("client.added.description") || "The client has been created successfully.",
         });
 
         if (onClientCreated && client) {
@@ -148,8 +150,8 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
     } catch (error) {
       console.error('Error saving client:', error);
       toast({
-        title: "Error",
-        description: "Failed to save client. Please try again.",
+        title: t("error") || "Error",
+        description: t("failed.to.save.client") || "Failed to save client. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -161,7 +163,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{existingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
+          <DialogTitle>{existingClient ? t('edit.client') : t('add.new.client')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -171,7 +173,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name*</FormLabel>
+                    <FormLabel>{t("name")}*</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -184,7 +186,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="company"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company</FormLabel>
+                    <FormLabel>{t("company")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -197,7 +199,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="vat_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>VAT Number*</FormLabel>
+                    <FormLabel>{t("vat_number")}*</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -210,7 +212,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email*</FormLabel>
+                    <FormLabel>{t("email")}*</FormLabel>
                     <FormControl>
                       <Input type="email" {...field} />
                     </FormControl>
@@ -223,9 +225,9 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>{t("phone")}</FormLabel>
                     <FormControl>
-                      <div className="phone-input-container">
+                      <div className="phone-input-container relative">
                         <PhoneInput
                           country={phoneCountry}
                           value={field.value}
@@ -238,7 +240,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                           inputProps={{
                             name: 'phone',
                             required: false,
-                            className: 'w-full p-2 rounded-md border'
+                            className: 'w-full p-2 pl-12 rounded-md border'
                           }}
                           containerClass="w-full"
                           enableSearch
@@ -256,7 +258,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                             }
                           }}
                           dropdownClass="absolute z-50 bg-white border rounded-md shadow-lg"
-                          buttonClass="bg-white border rounded-l-md"
+                          buttonClass="bg-white border rounded-l-md absolute z-10 left-0 top-0 bottom-0"
                           searchClass="p-2 border-b"
                           preferredCountries={['be', 'fr', 'us', 'gb', 'de', 'nl']}
                         />
@@ -271,7 +273,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>{t("address")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -285,7 +287,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel>{t("city")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -298,7 +300,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                   name="postal_code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Postal Code</FormLabel>
+                      <FormLabel>{t("postal_code")}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -312,7 +314,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                 name="country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country</FormLabel>
+                    <FormLabel>{t("country")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -323,10 +325,10 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : existingClient ? 'Update Client' : 'Save Client'}
+                {isSubmitting ? t("saving") || "Saving..." : existingClient ? t("update.client") || "Update Client" : t("save.client") || "Save Client"}
               </Button>
             </DialogFooter>
           </form>

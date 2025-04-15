@@ -9,12 +9,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 // Constants for select options
 export const UNITS = [
-  { label: 'Pieces', value: 'pieces' },
-  { label: 'Boxes', value: 'boxes' },
-  { label: 'Hours', value: 'hours' },
-  { label: 'Days', value: 'days' },
+  { label: 'pieces', value: 'pieces' },
+  { label: 'boxes', value: 'boxes' },
+  { label: 'hours', value: 'hours' },
+  { label: 'days', value: 'days' },
   { label: 'm²', value: 'm2' },
-  { label: 'Liters', value: 'liters' },
+  { label: 'liters', value: 'liters' },
   { label: 'kg', value: 'kg' },
 ];
 
@@ -117,7 +117,7 @@ const LineItemRow: React.FC<LineItemRowProps> = ({
                 <SelectContent>
                   {UNITS.map((unit) => (
                     <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
+                      {t(unit.label) || unit.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

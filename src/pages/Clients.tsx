@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Plus, Search, Pencil, Trash } from 'lucide-react';
 import ConfirmDialog from '@/components/clients/ConfirmDialog';
 import { ClientFormDialog } from '@/components/clients/ClientFormDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/language';
 
 interface Client {
   id: string;
@@ -33,6 +34,7 @@ const Clients = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
@@ -73,16 +75,16 @@ const Clients = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
       toast({
-        title: "Client Created",
-        description: "The client has been created successfully.",
+        title: t("client.added") || "Client Created",
+        description: t("client.added.description") || "The client has been created successfully.",
       });
       setOpen(false);
     },
     onError: (error) => {
       console.error('Error creating client:', error);
       toast({
-        title: "Error",
-        description: "Failed to create client. Please try again.",
+        title: t("error") || "Error",
+        description: t("failed.to.create.client") || "Failed to create client. Please try again.",
         variant: "destructive",
       });
     },
@@ -105,16 +107,16 @@ const Clients = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
       toast({
-        title: "Client Updated",
-        description: "The client has been updated successfully.",
+        title: t("client.updated") || "Client Updated",
+        description: t("client.updated.description") || "The client has been updated successfully.",
       });
       setOpen(false);
     },
     onError: (error) => {
       console.error('Error updating client:', error);
       toast({
-        title: "Error",
-        description: "Failed to update client. Please try again.",
+        title: t("error") || "Error",
+        description: t("failed.to.update.client") || "Failed to update client. Please try again.",
         variant: "destructive",
       });
     },
@@ -134,8 +136,8 @@ const Clients = () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['recent-activity'] });
       toast({
-        title: "Client Deleted",
-        description: "The client has been deleted successfully.",
+        title: t("client.deleted") || "Client Deleted",
+        description: t("client.deleted.description") || "The client has been deleted successfully.",
       });
       setConfirmDeleteDialogOpen(false);
       setSelectedClient(null);
@@ -143,8 +145,8 @@ const Clients = () => {
     onError: (error) => {
       console.error('Error deleting client:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete client. Please try again.",
+        title: t("error") || "Error",
+        description: t("failed.to.delete.client") || "Failed to delete client. Please try again.",
         variant: "destructive",
       });
     },
@@ -171,24 +173,24 @@ const Clients = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('clients.title') || 'Clients'}</h1>
         <Button onClick={() => {
           setSelectedClient(null);
           setOpen(true);
         }}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Client
+          {t('add.new.client') || 'Add Client'}
         </Button>
       </div>
       <Card>
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
-            <CardTitle>All Clients</CardTitle>
+            <CardTitle>{t('all_clients') || 'All Clients'}</CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search clients..."
+                placeholder={t('search') || "Search clients..."}
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -199,17 +201,17 @@ const Clients = () => {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <p className="text-muted-foreground">Loading clients...</p>
+              <p className="text-muted-foreground">{t('loading') || "Loading clients..."}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('name') || 'Name'}</TableHead>
+                  <TableHead>{t('company') || 'Company'}</TableHead>
+                  <TableHead>{t('email') || 'Email'}</TableHead>
+                  <TableHead>{t('phone') || 'Phone'}</TableHead>
+                  <TableHead className="text-right">{t('actions') || 'Actions'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -258,10 +260,10 @@ const Clients = () => {
             handleDeleteClient(selectedClient.id);
           }
         }}
-        title="Delete Client"
-        description="Are you sure you want to delete this client? This action cannot be undone."
-        confirmButtonText="Delete"
-        cancelButtonText="Cancel"
+        title={t('delete.client') || "Delete Client"}
+        description={t('delete.client.confirmation') || "Are you sure you want to delete this client? This action cannot be undone."}
+        confirmButtonText={t('delete') || "Delete"}
+        cancelButtonText={t('cancel') || "Cancel"}
         isLoading={deleteClientMutation.isPending}
       />
     </div>

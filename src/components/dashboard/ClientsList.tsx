@@ -5,12 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/language";
 
 interface Client {
   id: string;
@@ -79,7 +79,7 @@ const ClientsList = () => {
             return {
               ...client,
               total_spent: '$0.00',
-              last_invoice: 'No invoices yet'
+              last_invoice: t('clients.no.invoices') || 'No invoices yet'
             };
           }
 
@@ -91,7 +91,7 @@ const ClientsList = () => {
           // Get the date of the most recent invoice
           const lastInvoice = invoices.length > 0 
             ? formatRelativeTime(invoices[0].created_at) 
-            : 'No invoices yet';
+            : t('clients.no.invoices') || 'No invoices yet';
 
           return {
             ...client,
@@ -162,7 +162,7 @@ const ClientsList = () => {
               ) : clients.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={isMobile ? 2 : 4} className="text-center py-4">
-                    {t('clients.none.found')}
+                    {t('no_clients_found')}
                   </TableCell>
                 </TableRow>
               ) : (

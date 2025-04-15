@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import InvoiceTable from '@/components/invoices/InvoiceTable';
 import { Invoice } from '@/components/invoices/useInvoiceOperations';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/language';
 
 interface InvoiceListContainerProps {
   searchQuery: string;
@@ -38,12 +38,12 @@ const InvoiceListContainer: React.FC<InvoiceListContainerProps> = ({
     <Card>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
-          <CardTitle>{t('all_invoices') || 'All Invoices'}</CardTitle>
+          <CardTitle>{t('all_invoices')}</CardTitle>
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               type="search" 
-              placeholder={t('search_invoices') || 'Search invoices'} 
+              placeholder={t('search_invoices')} 
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
