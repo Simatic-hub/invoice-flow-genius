@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/language';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -25,6 +26,7 @@ interface ContactFormProps {
 
 export function ContactForm({ open, onOpenChange }: ContactFormProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -41,8 +43,8 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
       console.log('Contact form data:', data);
       
       toast({
-        title: "Message Sent",
-        description: "We've received your message and will get back to you soon.",
+        title: t("message.sent"),
+        description: t("message.sent.description"),
       });
       
       form.reset();
@@ -50,8 +52,8 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
-        title: "Error",
-        description: "Failed to send your message. Please try again.",
+        title: t("error"),
+        description: t("failed.to.send.message"),
         variant: "destructive",
       });
     }
@@ -61,9 +63,9 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Contact Us</DialogTitle>
+          <DialogTitle>{t("contact.us")}</DialogTitle>
           <DialogDescription>
-            Have questions about our product or services? Send us a message and we'll get back to you as soon as possible.
+            {t("contact.form.description")}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -73,7 +75,7 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t("name")}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -86,7 +88,7 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
                   </FormControl>
@@ -99,11 +101,11 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Message</FormLabel>
+                  <FormLabel>{t("message")}</FormLabel>
                   <FormControl>
                     <Textarea 
                       rows={5} 
-                      placeholder="How can we help you?" 
+                      placeholder={t("message.placeholder")} 
                       {...field} 
                     />
                   </FormControl>
@@ -113,10 +115,10 @@ export function ContactForm({ open, onOpenChange }: ContactFormProps) {
             />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit">
-                Send Message
+                {t("send.message")}
               </Button>
             </DialogFooter>
           </form>

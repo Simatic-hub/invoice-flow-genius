@@ -4,7 +4,7 @@ import { Form } from "@/components/ui/form";
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/language';
 import { useInvoiceForm } from './form/useInvoiceForm';
 import ClientSection from './form/ClientSection';
 import DocumentDetailsSection from './form/DocumentDetailsSection';

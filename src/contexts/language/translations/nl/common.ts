@@ -43,4 +43,24 @@ export const commonTranslations: Partial<TranslationRecord> = {
   'square_meters': 'm²',
   'liters': 'Liters',
   'kilograms': 'kg',
+  
+  // Contact form
+  'contact.us': 'Contacteer ons',
+  'name': 'Naam',
+  'message': 'Bericht',
+  'send.message': 'Verstuur bericht',
+  'optional': 'optioneel',
+  'contact.form.description': 'Heeft u vragen over ons product of onze diensten? Stuur ons een bericht en we nemen zo snel mogelijk contact met u op.',
+  'message.placeholder': 'Hoe kunnen we u helpen?',
+  'message.sent': 'Bericht Verzonden',
+  'message.sent.description': 'We hebben uw bericht ontvangen en zullen spoedig contact met u opnemen.',
+  'failed.to.send.message': 'Kon bericht niet verzenden. Probeer het opnieuw.',
+  
+  // Client related
+  'company': 'Bedrijf',
+  'phone': 'Telefoon',
+  'actions': 'Acties',
+  'no_clients_found': 'Geen klanten gevonden',
+  'add.new.client': 'Nieuwe Klant Toevoegen',
+  'vat': 'BTW'
 };
