@@ -1,0 +1,46 @@
+
+import { TranslationRecord } from "../../types";
+
+export const commonTranslations: Partial<TranslationRecord> = {
+  // Common
+  'app.name': 'InvoiceFlow Genius',
+  'login': 'Login',
+  'register': 'Register',
+  'logout': 'Logout',
+  'free.version': 'Free Version',
+  'contact': 'Contact',
+  'pricing': 'Pricing',
+  'loading': 'Loading...',
+  'view.all': 'View All',
+  'dashboard': 'Dashboard',
+  'welcome.back': 'Welcome back to your dashboard',
+  'error': 'Error',
+  'success': 'Success',
+  'from.last.month': 'from last month',
+  'new.this.month': 'new this month',
+  'year.over.year': 'year over year',
+  'increase': 'increase',
+  'decrease': 'decrease',
+  'create': 'Create',
+  'save': 'Save',
+  'cancel': 'Cancel',
+  'delete': 'Delete',
+  'edit': 'Edit',
+  'search': 'Search',
+  'email': 'Email',
+  'date': 'Date',
+  'description': 'Description',
+  'unit': 'Unit',
+  'price': 'Price',
+  'notes': 'Notes',
+  'attachment': 'Attachment',
+  
+  // Units of measurement
+  'pieces': 'Pieces',
+  'boxes': 'Boxes',
+  'hours': 'Hours',
+  'days': 'Days',
+  'square_meters': 'sqm',
+  'liters': 'Liters',
+  'kilograms': 'kg',
+};
