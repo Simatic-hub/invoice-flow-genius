@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/language';
 
 type ProfileData = {
   first_name: string | null;
@@ -15,18 +17,21 @@ type UserProfileContextType = {
   loading: boolean;
   error: string | null;
   updateProfile: (data: Partial<ProfileData>) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 };
 
 const defaultContext: UserProfileContextType = {
   profile: null,
   loading: false,
   error: null,
-  updateProfile: async () => {}
+  updateProfile: async () => {},
+  refreshProfile: async () => {}
 };
 
 const UserProfileContext = createContext<UserProfileContextType>(defaultContext);
 
 export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -42,6 +47,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
+      console.log('Fetching profile for user ID:', user.id);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('first_name, last_name, email, phone')
@@ -52,10 +59,16 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw error;
       }
       
+      console.log('Profile data retrieved:', data);
       setProfile(data);
     } catch (error: any) {
       console.error('Error fetching profile:', error.message);
       setError(error.message);
+      toast({
+        title: t('error'),
+        description: t('failed_to_fetch_profile_data') || 'Failed to fetch profile data',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -83,25 +96,45 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Update the profile state with new data
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
+      toast({
+        title: t('success'),
+        description: t('profile_updated') || 'Profile updated successfully',
+      });
     } catch (error: any) {
       console.error('Error updating profile:', error.message);
       setError(error.message);
+      toast({
+        title: t('error'),
+        description: t('failed_to_update_profile') || 'Failed to update profile',
+        variant: 'destructive'
+      });
       throw error;
     } finally {
       setLoading(false);
     }
   };
 
+  // Added function to manually refresh profile data
+  const refreshProfile = async () => {
+    await fetchProfile();
+  };
+
   // Fetch profile when user changes
   useEffect(() => {
-    fetchProfile();
+    if (user) {
+      console.log('User changed, fetching profile');
+      fetchProfile();
+    } else {
+      setProfile(null);
+    }
   }, [user]);
 
   const value = {
     profile,
     loading,
     error,
-    updateProfile
+    updateProfile,
+    refreshProfile
   };
 
   return (

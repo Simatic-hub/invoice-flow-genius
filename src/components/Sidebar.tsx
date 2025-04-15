@@ -9,14 +9,15 @@ import {
   Settings, 
   Menu, 
   X,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useLanguage } from "@/contexts/language";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "@/hooks/use-toast";
 
 interface NavItemProps {
@@ -52,14 +53,16 @@ interface SidebarProps {
 const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
   const { signOut, user } = useAuth();
-  const { profile, loading } = useUserProfile();
+  const { profile, loading, refreshProfile } = useUserProfile();
   const { t } = useLanguage();
   
   // Force a refresh of the profile data when the sidebar mounts
   useEffect(() => {
-    // This effect intentionally left empty to ensure profile data is loaded
+    if (user && (!profile || !profile.first_name)) {
+      refreshProfile();
+    }
     console.log("Sidebar mounted, profile:", profile, "loading:", loading);
-  }, [profile, loading]);
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -73,6 +76,32 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
         variant: "destructive",
       });
     }
+  };
+  
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (!profile) return user?.email || t('loading');
+    
+    const firstName = profile.first_name || '';
+    const lastName = profile.last_name || '';
+    
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    
+    return user?.email || t('loading');
+  };
+  
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!profile || (!profile.first_name && !profile.last_name)) {
+      return user?.email?.charAt(0).toUpperCase() || '?';
+    }
+    
+    const firstInitial = profile.first_name ? profile.first_name.charAt(0).toUpperCase() : '';
+    const lastInitial = profile.last_name ? profile.last_name.charAt(0).toUpperCase() : '';
+    
+    return firstInitial + lastInitial || '?';
   };
   
   if (isMobile && !isSidebarOpen) return null;
@@ -127,16 +156,12 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
         <div className="flex items-center gap-3">
           <Avatar className="w-8 h-8 bg-sidebar-accent text-sidebar-accent-foreground">
             <AvatarFallback>
-              {!loading && profile && profile.first_name && profile.last_name
-                ? `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
-                : "?"}
+              {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="text-sm font-medium text-sidebar-foreground">
-              {!loading && profile && (profile.first_name || profile.last_name) 
-                ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() 
-                : user?.email || t('loading')}
+              {getUserDisplayName()}
             </span>
             <span className="text-xs text-sidebar-foreground/70">{t('free.version')}</span>
           </div>
