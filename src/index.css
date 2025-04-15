@@ -103,9 +103,52 @@
   .activity-item {
     @apply transition-all duration-200 hover:bg-muted/40 rounded-md p-1 -m-1;
   }
+  
+  /* Phone input styling */
+  .phone-input-wrapper {
+    @apply relative w-full;
+  }
+
+  .phone-input-container {
+    @apply w-full relative;
+  }
+
+  .phone-input-container .phone-input {
+    @apply w-full h-10 pl-12 pr-3 py-2 rounded-md border border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  .phone-input-button {
+    @apply absolute left-0 top-0 h-full px-2 flex items-center justify-center border-r border-input rounded-l-md bg-muted/30;
+  }
+
+  .phone-input-dropdown {
+    @apply absolute z-50 mt-1 w-72 bg-white border border-input rounded-md shadow-lg;
+  }
+
+  .phone-input-search {
+    @apply p-2 border-b border-input w-full;
+  }
+
+  .phone-input-container .selected-flag {
+    @apply pl-2;
+  }
+
+  .phone-input-container .selected-flag .flag {
+    @apply mr-2;
+  }
+
+  .phone-input-container .country-list {
+    @apply bg-white z-50 border border-input rounded-md shadow-lg;
+  }
+
+  .phone-input-container .country-list .country {
+    @apply px-2 py-1 hover:bg-muted/30;
+  }
+
+  .phone-input-container .country-list .country.highlight {
+    @apply bg-muted/50;
+  }
 }
-
-
 
 body {
   font-family: 'Inter', sans-serif;

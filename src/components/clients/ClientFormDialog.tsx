@@ -227,7 +227,7 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                   <FormItem>
                     <FormLabel>{t("phone")}</FormLabel>
                     <FormControl>
-                      <div className="phone-input-container relative">
+                      <div className="phone-input-wrapper">
                         <PhoneInput
                           country={phoneCountry}
                           value={field.value}
@@ -240,9 +240,12 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                           inputProps={{
                             name: 'phone',
                             required: false,
-                            className: 'w-full p-2 pl-12 rounded-md border'
+                            className: 'phone-input'
                           }}
-                          containerClass="w-full"
+                          containerClass="phone-input-container"
+                          buttonClass="phone-input-button"
+                          dropdownClass="phone-input-dropdown"
+                          searchClass="phone-input-search"
                           enableSearch
                           isValid={(value, country) => {
                             try {
@@ -257,9 +260,6 @@ export function ClientFormDialog({ open, onOpenChange, onClientCreated, existing
                               return false;
                             }
                           }}
-                          dropdownClass="absolute z-50 bg-white border rounded-md shadow-lg"
-                          buttonClass="bg-white border rounded-l-md absolute z-10 left-0 top-0 bottom-0"
-                          searchClass="p-2 border-b"
                           preferredCountries={['be', 'fr', 'us', 'gb', 'de', 'nl']}
                         />
                       </div>
