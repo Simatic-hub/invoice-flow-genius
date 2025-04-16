@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
 import { generatePdf, downloadPdf, getBusinessSettings, getCompanyLogo } from '@/utils/pdf';
 import { Invoice } from './types';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePdfGeneration = () => {
   const { toast } = useToast();
@@ -106,6 +107,3 @@ export const usePdfGeneration = () => {
 
   return { handleGeneratePdf };
 };
-
-// Need to import supabase after the function definition to avoid circular dependency
-import { supabase } from '@/integrations/supabase/client';
