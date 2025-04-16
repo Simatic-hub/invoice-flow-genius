@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { generatePdf, downloadPdf, getBusinessSettings, getCompanyLogo } from '@/utils/pdfGenerator';
+import { generatePdf, downloadPdf, getBusinessSettings, getCompanyLogo } from '@/utils/pdf';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface Quote {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,6 +24,7 @@ export const useDiagnostics = () => {
       
       // Then try dynamic import to check availability
       try {
+        // Update import path to use the refactored module
         const jsPDF = await import('jspdf');
         const autoTable = await import('jspdf-autotable');
         
