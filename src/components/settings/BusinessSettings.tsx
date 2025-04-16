@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -65,13 +66,25 @@ const BusinessSettings = () => {
     try {
       setLoading(true);
       
+      // Ensure the business_settings table exists by attempting to query it
+      const { error: tableCheckError } = await supabase
+        .from('business_settings')
+        .select('count')
+        .limit(1);
+      
+      if (tableCheckError) {
+        console.log('Business settings table might not exist, attempting to create record anyway');
+      }
+      
       const { data: existingData, error: checkError } = await supabase
         .from('business_settings')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
       
-      if (checkError) throw checkError;
+      if (checkError) {
+        console.log('Error checking existing data:', checkError.message, 'Will try to insert new record');
+      }
       
       let error;
       

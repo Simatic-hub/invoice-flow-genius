@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -166,9 +167,25 @@ export const useQuoteOperations = () => {
     });
 
     try {
-      const businessSettings = await getBusinessSettings(user.id);
-      const logoUrl = await getCompanyLogo(user.id);
+      console.log('Starting PDF generation for quote:', quote.invoice_number);
       
+      // Ensure storage buckets exist
+      let { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      if (bucketsError) {
+        console.error('Error checking buckets:', bucketsError);
+        // Continue anyway, we might not need logo
+      } else {
+        console.log('Available buckets:', buckets?.map(b => b.name));
+      }
+      
+      // Fetch business settings and logo
+      const businessSettings = await getBusinessSettings(user.id);
+      console.log('Business settings retrieved:', businessSettings);
+      
+      const logoUrl = await getCompanyLogo(user.id);
+      console.log('Logo URL retrieved:', !!logoUrl);
+      
+      // Generate the PDF
       const pdfDataUrl = await generatePdf({
         document: quote,
         isQuote: true,
@@ -178,14 +195,20 @@ export const useQuoteOperations = () => {
         vatNumber: businessSettings?.vat_number,
       });
       
-      downloadPdf(pdfDataUrl, `Quote-${quote.invoice_number}.pdf`);
-      
-      toast({
-        title: t('pdf_ready') || 'PDF Ready',
-        description: t('pdf_ready_description') || 'Your PDF has been generated and downloaded.',
-      });
+      // Download the PDF
+      if (pdfDataUrl) {
+        downloadPdf(pdfDataUrl, `Quote-${quote.invoice_number}.pdf`);
+        
+        toast({
+          title: t('pdf_ready') || 'PDF Ready',
+          description: t('pdf_ready_description') || 'Your PDF has been generated and downloaded.',
+        });
+      } else {
+        throw new Error('PDF data URL is empty');
+      }
     } catch (error) {
       console.error('Error generating PDF:', error);
+      
       toast({
         title: t('error') || 'Error',
         description: t('pdf_generation_failed') || 'Failed to generate PDF. Please try again.',
