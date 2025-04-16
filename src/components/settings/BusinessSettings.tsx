@@ -1,15 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { type Database } from '@/integrations/supabase/types';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/language';
+import CompanyLogoUpload from './CompanyLogoUpload';
 
 type BusinessSettings = Database['public']['Tables']['business_settings']['Row'];
 
@@ -24,7 +23,6 @@ const BusinessSettings = () => {
     currency: 'USD'
   });
 
-  // Fetch business data
   const fetchBusinessData = async () => {
     if (!user) return;
     
@@ -59,14 +57,12 @@ const BusinessSettings = () => {
     }
   };
 
-  // Update or insert business settings
   const updateBusinessSettings = async () => {
     if (!user) return;
     
     try {
       setLoading(true);
       
-      // Check if record exists
       const { data: existingData, error: checkError } = await supabase
         .from('business_settings')
         .select('id')
@@ -78,7 +74,6 @@ const BusinessSettings = () => {
       let error;
       
       if (existingData) {
-        // Update existing record
         const { error: updateError } = await supabase
           .from('business_settings')
           .update({
@@ -92,7 +87,6 @@ const BusinessSettings = () => {
         
         error = updateError;
       } else {
-        // Insert new record
         const { error: insertError } = await supabase
           .from('business_settings')
           .insert({
@@ -124,78 +118,82 @@ const BusinessSettings = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     if (user) {
       fetchBusinessData();
     }
   }, [user]);
 
-  // Handle business input changes
   const handleBusinessChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setBusinessData(prev => ({ ...prev, [id]: value }));
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('settings.business.information')}</CardTitle>
-        <CardDescription>
-          {t('settings.business.update')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="business_name">{t('settings.business.name')}</Label>
-          <Input 
-            id="business_name" 
-            placeholder="Acme Inc." 
-            value={businessData.business_name} 
-            onChange={handleBusinessChange}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="address">{t('settings.business.address')}</Label>
-          <Textarea 
-            id="address" 
-            placeholder="123 Business St, City, State, ZIP" 
-            value={businessData.address} 
-            onChange={handleBusinessChange}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">{t('business_settings')}</h1>
+      
+      <CompanyLogoUpload />
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.business.information')}</CardTitle>
+          <CardDescription>
+            {t('settings.business.update')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="vat_number">{t('settings.business.vat')}</Label>
+            <Label htmlFor="business_name">{t('settings.business.name')}</Label>
             <Input 
-              id="vat_number" 
-              placeholder="XX-XXXXXXX" 
-              value={businessData.vat_number} 
+              id="business_name" 
+              placeholder="Acme Inc." 
+              value={businessData.business_name} 
               onChange={handleBusinessChange}
             />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="currency">{t('settings.business.currency')}</Label>
-            <Input 
-              id="currency" 
-              placeholder="USD" 
-              value={businessData.currency} 
+            <Label htmlFor="address">{t('settings.business.address')}</Label>
+            <Textarea 
+              id="address" 
+              placeholder="123 Business St, City, State, ZIP" 
+              value={businessData.address} 
               onChange={handleBusinessChange}
             />
           </div>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button 
-          onClick={updateBusinessSettings} 
-          disabled={loading}
-        >
-          {loading ? t('settings.saving') : t('settings.save.changes')}
-        </Button>
-      </CardFooter>
-    </Card>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="vat_number">{t('settings.business.vat')}</Label>
+              <Input 
+                id="vat_number" 
+                placeholder="XX-XXXXXXX" 
+                value={businessData.vat_number} 
+                onChange={handleBusinessChange}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currency">{t('settings.business.currency')}</Label>
+              <Input 
+                id="currency" 
+                placeholder="USD" 
+                value={businessData.currency} 
+                onChange={handleBusinessChange}
+              />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={updateBusinessSettings} 
+            disabled={loading}
+          >
+            {loading ? t('settings.saving') : t('settings.save.changes')}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 

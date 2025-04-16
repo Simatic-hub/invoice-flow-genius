@@ -1,9 +1,10 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { generatePdf, downloadPdf, getBusinessSettings, getCompanyLogo } from '@/utils/pdfGenerator';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface Quote {
   id: string;
@@ -23,12 +24,14 @@ export interface Quote {
   payment_info?: string | null;
   payment_terms?: string | null;
   attachment_path?: string | null;
+  line_items?: any[];
 }
 
 export const useQuoteOperations = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const deleteQuoteMutation = useMutation({
     mutationFn: async (quoteId: string) => {
@@ -115,7 +118,6 @@ export const useQuoteOperations = () => {
         status: 'pending',
         created_at: undefined,
         updated_at: undefined,
-        // Ensure line_items is valid
         line_items: quote.line_items || []
       };
       
@@ -148,11 +150,48 @@ export const useQuoteOperations = () => {
     },
   });
 
-  const handleGeneratePdf = (quote: Quote) => {
+  const handleGeneratePdf = async (quote: Quote) => {
+    if (!user) {
+      toast({
+        title: t('error') || 'Error',
+        description: t('not_logged_in') || 'You must be logged in to generate PDFs',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     toast({
       title: t('generating_pdf') || 'Generating PDF',
-      description: t('generating_pdf_description') || 'Your PDF is being generated.',
+      description: t('generating_pdf_description') || 'Your PDF is being generated and will be ready shortly.',
     });
+
+    try {
+      const businessSettings = await getBusinessSettings(user.id);
+      const logoUrl = await getCompanyLogo(user.id);
+      
+      const pdfDataUrl = await generatePdf({
+        document: quote,
+        isQuote: true,
+        logoUrl,
+        businessName: businessSettings?.business_name,
+        businessAddress: businessSettings?.address,
+        vatNumber: businessSettings?.vat_number,
+      });
+      
+      downloadPdf(pdfDataUrl, `Quote-${quote.invoice_number}.pdf`);
+      
+      toast({
+        title: t('pdf_ready') || 'PDF Ready',
+        description: t('pdf_ready_description') || 'Your PDF has been generated and downloaded.',
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: t('error') || 'Error',
+        description: t('pdf_generation_failed') || 'Failed to generate PDF. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return {
