@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/language';
 import CompanyLogoUpload from './CompanyLogoUpload';
-import { Database } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 type BusinessSettings = Database['public']['Tables']['business_settings']['Row'];
 
@@ -25,12 +25,14 @@ const BusinessSettings = () => {
     vat_number: '',
     currency: 'USD'
   });
+  const [connectionError, setConnectionError] = useState(false);
 
   const fetchBusinessData = async () => {
     if (!user) return;
     
     try {
       setLoading(true);
+      setConnectionError(false);
       
       const { data, error } = await supabase
         .from('business_settings')
@@ -38,7 +40,11 @@ const BusinessSettings = () => {
         .eq('user_id', user.id)
         .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching business settings:', error.message);
+        setConnectionError(true);
+        throw error;
+      }
       
       if (data) {
         setBusinessData({
@@ -52,7 +58,9 @@ const BusinessSettings = () => {
       console.error('Error fetching business settings:', error.message);
       toast({
         title: t('error'),
-        description: t('failed_to_fetch_business_data'),
+        description: connectionError 
+          ? t('connection_error_try_again') || 'Connection error. Please try again later.'
+          : t('failed_to_fetch_business_data') || 'Failed to fetch business data',
         variant: 'destructive'
       });
     } finally {
@@ -65,6 +73,7 @@ const BusinessSettings = () => {
     
     try {
       setLoading(true);
+      setConnectionError(false);
       
       // Ensure the business_settings table exists by attempting to query it
       const { error: tableCheckError } = await supabase
@@ -115,7 +124,10 @@ const BusinessSettings = () => {
         error = insertError;
       }
       
-      if (error) throw error;
+      if (error) {
+        setConnectionError(true);
+        throw error;
+      }
       
       toast({
         title: t('success'),
@@ -125,7 +137,9 @@ const BusinessSettings = () => {
       console.error('Error updating business settings:', error.message);
       toast({
         title: t('error'),
-        description: t('failed_to_update_business_settings'),
+        description: connectionError 
+          ? t('connection_error_try_again') || 'Connection error. Please try again later.'
+          : t('failed_to_update_business_settings') || 'Failed to update business settings',
         variant: 'destructive'
       });
     } finally {
@@ -158,6 +172,13 @@ const BusinessSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {connectionError && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md mb-4">
+              <p className="font-medium">Connection issue detected</p>
+              <p className="text-sm">We're having trouble connecting to the server. Some features may not work correctly.</p>
+            </div>
+          )}
+        
           <div className="space-y-2">
             <Label htmlFor="business_name">{t('settings.business.name')}</Label>
             <Input 

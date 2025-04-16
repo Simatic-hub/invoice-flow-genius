@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { jsPDF } from 'jspdf';
 
 export const useDiagnostics = () => {
   const [hasConfigError, setHasConfigError] = useState(false);
@@ -15,12 +14,25 @@ export const useDiagnostics = () => {
       
       // Check jsPDF library
       try {
-        const doc = new jsPDF();
-        const testOutput = doc.output('datauristring');
-        setIsPdfLibraryLoaded(!!testOutput);
-        console.log('jsPDF test successful');
+        // Just check if the jsPDF module is available without instantiating
+        if (typeof require !== 'undefined') {
+          const jsPdfAvailable = !!require('jspdf');
+          setIsPdfLibraryLoaded(jsPdfAvailable);
+          console.log('jsPDF library check:', jsPdfAvailable ? 'Available' : 'Not available');
+        } else {
+          // In ESM environment
+          import('jspdf')
+            .then(() => {
+              setIsPdfLibraryLoaded(true);
+              console.log('jsPDF library check: Available');
+            })
+            .catch(err => {
+              console.error('Failed to load jsPDF:', err);
+              setIsPdfLibraryLoaded(false);
+            });
+        }
       } catch (error) {
-        console.error('jsPDF test failed:', error);
+        console.error('jsPDF library check failed:', error);
         setIsPdfLibraryLoaded(false);
       }
       
@@ -69,10 +81,11 @@ export const useDiagnostics = () => {
         setIsSupabaseConnected(false);
       }
       
-      // Final diagnostics result
-      const hasError = !isPdfLibraryLoaded || !isSupabaseConnected;
+      // Final diagnostics result - only consider Supabase connection as critical
+      // Don't flag PDF library as a critical error since it's only needed when actually generating PDFs
+      const hasError = !isSupabaseConnected;
       setHasConfigError(hasError);
-      console.log('Diagnostics complete. Error detected:', hasError);
+      console.log('Diagnostics complete. Critical error detected:', hasError);
     };
     
     runDiagnostics();
