@@ -4,11 +4,11 @@ import { TranslationRecord } from "../../types";
 export const authTranslations: Partial<TranslationRecord> = {
   // Auth
   'auth.login.success': 'Login Successful',
-  'auth.welcome.back': 'Welcome back to InvoiceFlow Genius!',
+  'auth.welcome.back': 'Welcome back to Proforma!',
   'auth.login.failed': 'Login Failed',
   'auth.check.credentials': 'Failed to log in. Please check your credentials and try again.',
   'auth.signup.success': 'Signup Successful',
-  'auth.verify.email': 'Welcome to InvoiceFlow Genius! Please check your email to verify your account.',
+  'auth.verify.email': 'Welcome to Proforma! Please check your email to verify your account.',
   'auth.signup.failed': 'Signup Failed',
   'auth.try.again': 'Failed to create account. Please try again.',
   'auth.have.account': 'Enter your credentials to access your account',

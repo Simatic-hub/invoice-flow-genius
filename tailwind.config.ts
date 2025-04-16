@@ -67,7 +67,44 @@ export default {
 					blue: '#2563EB',
 					darkBlue: '#0F172A',
 					teal: '#0D9488',
+					navy: '#212d5b',
+				},
+				proforma: {
+					navy: '#212d5b',
+					navyDark: '#1e2b54',
+					blue: '#3182ce',
+					lightBlue: '#63b3ed',
+					gray: '#718096',
+					lightGray: '#e2e8f0',
 				}
+			},
+			fontFamily: {
+				sans: [
+					'Inter', 
+					'system-ui', 
+					'-apple-system', 
+					'BlinkMacSystemFont', 
+					'Segoe UI', 
+					'Roboto', 
+					'Helvetica Neue', 
+					'Arial', 
+					'sans-serif'
+				],
+				serif: [
+					'Georgia', 
+					'Cambria', 
+					'Times New Roman', 
+					'Times', 
+					'serif'
+				],
+				mono: [
+					'Menlo', 
+					'Monaco', 
+					'Consolas', 
+					'Liberation Mono', 
+					'Courier New', 
+					'monospace'
+				],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -106,6 +143,9 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out'
+			},
+			boxShadow: {
+				'proforma': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
 			}
 		}
 	},
