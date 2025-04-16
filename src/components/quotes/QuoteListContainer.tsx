@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import QuoteTable from '@/components/quotes/QuoteTable';
-import { Quote } from '@/components/quotes/useQuoteOperations';
+import { Quote } from '@/components/quotes/operations';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface QuoteListContainerProps {

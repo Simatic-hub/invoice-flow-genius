@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import InvoiceForm from '@/components/invoices/InvoiceForm';
 import EmailModal from '@/components/invoices/EmailModal';
 import ConfirmDialog from '@/components/clients/ConfirmDialog';
-import { Quote } from '@/components/quotes/useQuoteOperations';
+import { Quote } from '@/components/quotes/operations';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';

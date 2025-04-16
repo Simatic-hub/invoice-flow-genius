@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import StatusBadge from '@/components/quotes/StatusBadge';
-import { Quote } from '@/components/quotes/useQuoteOperations';
+import { Quote } from '@/components/quotes/operations';
 import { useLanguage } from '@/contexts/language';
 
 interface QuoteTableProps {

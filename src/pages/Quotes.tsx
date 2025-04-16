@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQuotes } from '@/hooks/useQuotes';
-import { useQuoteOperations, Quote } from '@/components/quotes/useQuoteOperations';
+import { useQuoteOperations, Quote } from '@/components/quotes/operations';
 import QuotePageHeader from '@/components/quotes/QuotePageHeader';
 import QuoteListContainer from '@/components/quotes/QuoteListContainer';
 import QuoteActions from '@/components/quotes/QuoteActions';
