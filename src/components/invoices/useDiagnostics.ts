@@ -37,7 +37,7 @@ export const useDiagnostics = () => {
             'invoices',
             'quotes',
             'clients'
-          ];
+          ] as const; // Type this as a readonly tuple of specific strings
           
           const tableResults: Record<string, boolean> = {};
           
