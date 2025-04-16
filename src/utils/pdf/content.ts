@@ -104,7 +104,7 @@ export const addLineItemsTable = (
   doc: jsPDF,
   lineItems: any[],
   yPos: number
-): number {
+): number => {
   if (!lineItems || !lineItems.length) {
     return yPos + 10; // If no line items, just advance a bit
   }
@@ -219,3 +219,4 @@ export const addLogo = (
     return yPos; // Return original position if there's an error
   }
 };
+
