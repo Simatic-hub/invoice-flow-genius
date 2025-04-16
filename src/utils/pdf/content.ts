@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { Document } from './types';
 import { calculateSubtotal, calculateVat } from './calculations';
@@ -166,8 +165,8 @@ export const addTotals = (
  */
 export const addNotesAndTerms = (
   doc: jsPDF,
-  paymentTerms?: string | null,
-  notes?: string | null,
+  paymentTerms: string | null = null,
+  notes: string | null = null,
   yPos: number
 ): number => {
   const leftMargin = 15;
@@ -206,7 +205,7 @@ export const addNotesAndTerms = (
  */
 export const addLogo = (
   doc: jsPDF,
-  logoUrl?: string | null,
+  logoUrl: string | null = null,
   yPos: number = 20
 ): number => {
   if (!logoUrl) return yPos;
@@ -219,4 +218,3 @@ export const addLogo = (
     return yPos; // Return original position if there's an error
   }
 };
-
