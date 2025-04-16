@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useDiagnostics = () => {
@@ -7,53 +7,62 @@ export const useDiagnostics = () => {
   const [isPdfLibraryLoaded, setIsPdfLibraryLoaded] = useState(false);
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(false);
   const [diagnosticInfo, setDiagnosticInfo] = useState<Record<string, any>>({});
+  const [isCheckingConnection, setIsCheckingConnection] = useState(false);
 
-  useEffect(() => {
-    const runDiagnostics = async () => {
-      console.log('Running diagnostics...');
-      
-      // Check jsPDF library
-      try {
-        // Just check if the jsPDF module is available without instantiating
-        if (typeof require !== 'undefined') {
-          const jsPdfAvailable = !!require('jspdf');
-          setIsPdfLibraryLoaded(jsPdfAvailable);
-          console.log('jsPDF library check:', jsPdfAvailable ? 'Available' : 'Not available');
-        } else {
-          // In ESM environment
-          import('jspdf')
-            .then(() => {
-              setIsPdfLibraryLoaded(true);
-              console.log('jsPDF library check: Available');
-            })
-            .catch(err => {
-              console.error('Failed to load jsPDF:', err);
-              setIsPdfLibraryLoaded(false);
-            });
+  const checkPdfLibrary = useCallback(async () => {
+    try {
+      // Just check if the jsPDF module is available without instantiating
+      if (typeof require !== 'undefined') {
+        const jsPdfAvailable = !!require('jspdf');
+        setIsPdfLibraryLoaded(jsPdfAvailable);
+        console.log('jsPDF library check:', jsPdfAvailable ? 'Available' : 'Not available');
+      } else {
+        // In ESM environment
+        try {
+          await import('jspdf');
+          setIsPdfLibraryLoaded(true);
+          console.log('jsPDF library check: Available');
+        } catch (err) {
+          console.error('Failed to load jsPDF:', err);
+          setIsPdfLibraryLoaded(false);
         }
-      } catch (error) {
-        console.error('jsPDF library check failed:', error);
-        setIsPdfLibraryLoaded(false);
+      }
+    } catch (error) {
+      console.error('jsPDF library check failed:', error);
+      setIsPdfLibraryLoaded(false);
+    }
+  }, []);
+
+  const checkSupabaseConnection = useCallback(async () => {
+    try {
+      setIsCheckingConnection(true);
+      console.log('Checking Supabase connection...');
+      
+      // Simple health check - just try to get session info
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Supabase connection test failed:', error);
+        setIsSupabaseConnected(false);
+        return false;
       }
       
-      // Check Supabase connection
+      console.log('Supabase connection test: Successful');
+      setIsSupabaseConnected(true);
+      
+      // Only try to check tables if connection succeeded
       try {
-        const { data, error } = await supabase.auth.getSession();
-        setIsSupabaseConnected(!error);
-        console.log('Supabase connection test:', error ? 'Failed' : 'Successful');
+        const tables = [
+          'business_settings',
+          'invoices',
+          'quotes',
+          'clients'
+        ] as const; // Type this as a readonly tuple of specific strings
         
-        // Check for required tables
-        if (!error) {
-          const tables = [
-            'business_settings',
-            'invoices',
-            'quotes',
-            'clients'
-          ] as const; // Type this as a readonly tuple of specific strings
-          
-          const tableResults: Record<string, boolean> = {};
-          
-          for (const table of tables) {
+        const tableResults: Record<string, boolean> = {};
+        
+        for (const table of tables) {
+          try {
             const { error: tableError } = await supabase
               .from(table)
               .select('count')
@@ -61,40 +70,80 @@ export const useDiagnostics = () => {
             
             tableResults[table] = !tableError;
             console.log(`Table check for ${table}:`, tableError ? 'Failed' : 'Successful');
+          } catch (tableCheckError) {
+            console.error(`Error checking table ${table}:`, tableCheckError);
+            tableResults[table] = false;
           }
-          
-          setDiagnosticInfo(prev => ({ ...prev, tables: tableResults }));
         }
         
-        // Check storage buckets
-        try {
-          const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-          const bucketList = buckets?.map(b => b.name) || [];
-          console.log('Available buckets:', bucketList);
-          setDiagnosticInfo(prev => ({ ...prev, buckets: bucketList }));
-        } catch (bucketError) {
-          console.error('Error checking buckets:', bucketError);
-        }
-        
-      } catch (error) {
-        console.error('Supabase connection test failed:', error);
-        setIsSupabaseConnected(false);
+        setDiagnosticInfo(prev => ({ ...prev, tables: tableResults }));
+      } catch (tablesCheckError) {
+        console.error('Error checking tables:', tablesCheckError);
       }
       
-      // Final diagnostics result - only consider Supabase connection as critical
-      // Don't flag PDF library as a critical error since it's only needed when actually generating PDFs
-      const hasError = !isSupabaseConnected;
-      setHasConfigError(hasError);
-      console.log('Diagnostics complete. Critical error detected:', hasError);
+      return true;
+    } catch (connectionError) {
+      console.error('Supabase connection check error:', connectionError);
+      setIsSupabaseConnected(false);
+      return false;
+    } finally {
+      setIsCheckingConnection(false);
+    }
+  }, []);
+
+  // Function to manually trigger a connection check
+  const checkConnection = useCallback(async () => {
+    // Collect environment information
+    const envInfo = {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      timestamp: new Date().toISOString(),
+      currentPath: window.location.pathname
+    };
+    setDiagnosticInfo(envInfo);
+    
+    // First check Supabase connection
+    const connected = await checkSupabaseConnection();
+    
+    // Only check PDF library if Supabase is connected
+    if (connected) {
+      await checkPdfLibrary();
+    }
+    
+    // Set the final diagnosis flag
+    setHasConfigError(!connected);
+  }, [checkPdfLibrary, checkSupabaseConnection]);
+
+  useEffect(() => {
+    const runDiagnostics = async () => {
+      console.log('Running diagnostics...');
+      
+      // Collect environment information first
+      const envInfo = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        timestamp: new Date().toISOString(),
+        currentPath: window.location.pathname
+      };
+      setDiagnosticInfo(envInfo);
+      
+      // Check Supabase connection
+      await checkSupabaseConnection();
     };
     
     runDiagnostics();
-  }, []);
+  }, [checkSupabaseConnection]);
   
   return {
     hasConfigError,
     isPdfLibraryLoaded,
     isSupabaseConnected,
-    diagnosticInfo
+    diagnosticInfo,
+    isCheckingConnection,
+    checkConnection
   };
 };

@@ -2,28 +2,45 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, WifiOff } from 'lucide-react';
 import { usePackageCheck } from '@/hooks/usePackageCheck';
+import { Button } from '@/components/ui/button';
+import { useDiagnostics } from '@/components/invoices/useDiagnostics';
 
 export const ProjectDiagnostics = () => {
   const { isPackageAvailable, diagnosticInfo } = usePackageCheck();
-
+  const { isSupabaseConnected, checkConnection } = useDiagnostics();
+  
   return (
     <Card className="w-full max-w-4xl mx-auto mt-8">
       <CardHeader>
         <CardTitle>Project Diagnostics</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Connection Issue Detected</AlertTitle>
+        <Alert variant={isSupabaseConnected ? "default" : "destructive"}>
+          {isSupabaseConnected ? (
+            <CheckCircle className="h-4 w-4" />
+          ) : (
+            <WifiOff className="h-4 w-4" />
+          )}
+          <AlertTitle>
+            {isSupabaseConnected 
+              ? "Connection Status: OK" 
+              : "Connection Issue Detected"}
+          </AlertTitle>
           <AlertDescription>
-            The system is having trouble connecting to required services. This might be due to:
-            <ul className="list-disc pl-5 mt-2">
-              <li>Supabase connection issues</li>
-              <li>Missing or incorrect environment configuration</li>
-              <li>Network connectivity problems</li>
-            </ul>
+            {isSupabaseConnected ? (
+              "Your application is properly connected to Supabase."
+            ) : (
+              <>
+                The system is having trouble connecting to required services. This might be due to:
+                <ul className="list-disc pl-5 mt-2">
+                  <li>Supabase connection issues</li>
+                  <li>Missing or incorrect environment configuration</li>
+                  <li>Network connectivity problems</li>
+                </ul>
+              </>
+            )}
           </AlertDescription>
         </Alert>
         
@@ -32,6 +49,17 @@ export const ProjectDiagnostics = () => {
           <pre className="p-4 bg-muted rounded-md overflow-auto text-sm">
             {diagnosticInfo || 'Collecting information...'}
           </pre>
+        </div>
+
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              checkConnection();
+            }}
+          >
+            Retry Connection
+          </Button>
         </div>
         
         <div className="bg-muted p-4 rounded-md text-sm">
