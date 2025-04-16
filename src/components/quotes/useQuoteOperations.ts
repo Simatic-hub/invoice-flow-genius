@@ -163,11 +163,39 @@ export const useQuoteOperations = () => {
 
     toast({
       title: t('generating_pdf') || 'Generating PDF',
-      description: t('generating_pdf_description') || 'Your PDF is being generated and will be ready shortly.',
+      description: t('generating_pdf_description') || 'Your quote PDF is being prepared for download.',
     });
 
     try {
       console.log('Starting PDF generation for quote:', quote.invoice_number);
+      
+      // Validate quote data
+      if (!quote || !quote.invoice_number) {
+        throw new Error('Invalid quote data');
+      }
+      
+      // Ensure quote has line items
+      if (!quote.line_items || !Array.isArray(quote.line_items) || quote.line_items.length === 0) {
+        console.warn('Quote has no line items, continuing with empty line items');
+        quote.line_items = [];
+      }
+      
+      // Check Supabase connection before proceeding
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('Session error before PDF generation:', sessionError);
+          throw new Error('Authentication error');
+        }
+        
+        if (!sessionData.session) {
+          console.error('No active session found');
+          throw new Error('No active session');
+        }
+      } catch (connectionError) {
+        console.error('Connection check failed:', connectionError);
+        throw new Error('Failed to connect to Supabase');
+      }
       
       // Ensure storage buckets exist
       let { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();

@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { Invoice } from '@/components/invoices/useInvoiceOperations';
@@ -44,6 +43,12 @@ export const generatePdf = async ({
       hasLogo: !!logoUrl,
       businessName,
     });
+    
+    // Check if required document data exists
+    if (!document || !document.invoice_number) {
+      console.error('Missing required document data for PDF generation');
+      throw new Error('Invalid document data');
+    }
     
     const doc = new jsPDF();
     const documentType = isQuote ? 'Quote' : 'Invoice';
@@ -114,7 +119,7 @@ export const generatePdf = async ({
     yPos += 7;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(document.client_name, leftMargin, yPos);
+    doc.text(document.client_name || 'Client Name', leftMargin, yPos);
     
     // Add line items table
     yPos += 15;
@@ -122,26 +127,32 @@ export const generatePdf = async ({
     if (lineItems && lineItems.length > 0) {
       const tableColumn = ["Description", "Qty", "Unit", "Price", "VAT %", "Total"];
       const tableRows = lineItems.map((item: any) => [
-        item.description,
-        item.quantity,
+        item.description || '',
+        item.quantity || '0',
         item.unit || '',
-        `$${parseFloat(item.unit_price || item.unitPrice).toFixed(2)}`,
-        `${(item.vat_rate || item.vatRate) || 0}%`,
-        `$${(parseFloat(item.quantity) * parseFloat(item.unit_price || item.unitPrice)).toFixed(2)}`
+        `$${parseFloat(item.unit_price || item.unitPrice || 0).toFixed(2)}`,
+        `${(item.vat_rate || item.vatRate || 0)}%`,
+        `$${((parseFloat(item.quantity || 0) * parseFloat(item.unit_price || item.unitPrice || 0)) || 0).toFixed(2)}`
       ]);
       
-      doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: yPos,
-        theme: 'grid',
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [66, 66, 66] },
-        margin: { left: leftMargin, right: leftMargin },
-      });
-      
-      // Update yPos to after the table
-      yPos = (doc as any).lastAutoTable.finalY + 10;
+      try {
+        doc.autoTable({
+          head: [tableColumn],
+          body: tableRows,
+          startY: yPos,
+          theme: 'grid',
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [66, 66, 66] },
+          margin: { left: leftMargin, right: leftMargin },
+        });
+        
+        // Update yPos to after the table
+        yPos = (doc as any).lastAutoTable.finalY + 10;
+      } catch (tableError) {
+        console.error('Error creating table in PDF:', tableError);
+        // Continue without table
+        yPos += 10;
+      }
     }
     
     // Add totals
@@ -151,7 +162,7 @@ export const generatePdf = async ({
     doc.text(`VAT: $${calculateVat(lineItems).toFixed(2)}`, pageWidth - 60, yPos);
     yPos += 6;
     doc.setFont('helvetica', 'bold');
-    doc.text(`Total: $${document.amount}`, pageWidth - 60, yPos);
+    doc.text(`Total: $${document.amount || 0}`, pageWidth - 60, yPos);
     
     // Add payment terms and notes
     yPos += 15;
@@ -167,8 +178,13 @@ export const generatePdf = async ({
       doc.text('Notes:', leftMargin, yPos);
       yPos += 6;
       doc.setFont('helvetica', 'normal');
-      const noteLines = doc.splitTextToSize(document.notes, 180);
-      doc.text(noteLines, leftMargin, yPos);
+      try {
+        const noteLines = doc.splitTextToSize(document.notes, 180);
+        doc.text(noteLines, leftMargin, yPos);
+      } catch (notesError) {
+        console.error('Error adding notes to PDF:', notesError);
+        // Continue without notes
+      }
     }
     
     // Create data URL from the PDF
@@ -212,12 +228,17 @@ const calculateVat = (lineItems: any[]): number => {
  * Download a generated PDF
  */
 export const downloadPdf = (dataUrl: string, fileName: string) => {
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    throw new Error('Failed to download PDF');
+  }
 };
 
 /**

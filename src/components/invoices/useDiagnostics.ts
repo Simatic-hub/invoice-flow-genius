@@ -11,25 +11,41 @@ export const useDiagnostics = () => {
 
   const checkPdfLibrary = useCallback(async () => {
     try {
-      // Just check if the jsPDF module is available without instantiating
-      if (typeof require !== 'undefined') {
-        const jsPdfAvailable = !!require('jspdf');
-        setIsPdfLibraryLoaded(jsPdfAvailable);
-        console.log('jsPDF library check:', jsPdfAvailable ? 'Available' : 'Not available');
-      } else {
-        // In ESM environment
-        try {
-          await import('jspdf');
+      if (typeof window === 'undefined') {
+        console.log('Running in non-browser environment, skipping PDF library check');
+        return false;
+      }
+      
+      // First check if window.jsPDF is available (global usage)
+      if ((window as any).jsPDF) {
+        console.log('jsPDF library check: Available (global)');
+        setIsPdfLibraryLoaded(true);
+        return true;
+      }
+      
+      // Then try dynamic import to check availability
+      try {
+        const jsPDF = await import('jspdf');
+        const autoTable = await import('jspdf-autotable');
+        
+        if (jsPDF && typeof jsPDF.default === 'function') {
+          console.log('jsPDF library check: Available (module)');
           setIsPdfLibraryLoaded(true);
-          console.log('jsPDF library check: Available');
-        } catch (err) {
-          console.error('Failed to load jsPDF:', err);
+          return true;
+        } else {
+          console.error('jsPDF imported but constructor not available');
           setIsPdfLibraryLoaded(false);
+          return false;
         }
+      } catch (importError) {
+        console.error('Failed to load jsPDF:', importError);
+        setIsPdfLibraryLoaded(false);
+        return false;
       }
     } catch (error) {
       console.error('jsPDF library check failed:', error);
       setIsPdfLibraryLoaded(false);
+      return false;
     }
   }, []);
 
@@ -93,6 +109,8 @@ export const useDiagnostics = () => {
 
   // Function to manually trigger a connection check
   const checkConnection = useCallback(async () => {
+    if (isCheckingConnection) return;
+    
     // Collect environment information
     const envInfo = {
       userAgent: navigator.userAgent,
@@ -100,27 +118,26 @@ export const useDiagnostics = () => {
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
       timestamp: new Date().toISOString(),
-      currentPath: window.location.pathname
+      currentPath: window.location.pathname,
+      jspdfVersion: '3.0.1', // Hardcoded since we can't easily access the version at runtime
     };
     setDiagnosticInfo(envInfo);
     
     // First check Supabase connection
     const connected = await checkSupabaseConnection();
     
-    // Only check PDF library if Supabase is connected
-    if (connected) {
-      await checkPdfLibrary();
-    }
+    // Check PDF library regardless of connection status
+    const pdfLibraryAvailable = await checkPdfLibrary();
     
     // Set the final diagnosis flag
-    setHasConfigError(!connected);
-  }, [checkPdfLibrary, checkSupabaseConnection]);
+    setHasConfigError(!connected || !pdfLibraryAvailable);
+  }, [checkPdfLibrary, checkSupabaseConnection, isCheckingConnection]);
 
   useEffect(() => {
     const runDiagnostics = async () => {
       console.log('Running diagnostics...');
       
-      // Collect environment information first
+      // Don't check everything on mount, just collect basic info
       const envInfo = {
         userAgent: navigator.userAgent,
         language: navigator.language,
@@ -131,11 +148,16 @@ export const useDiagnostics = () => {
       };
       setDiagnosticInfo(envInfo);
       
-      // Check Supabase connection
+      // Only check Supabase connection on mount, PDF library check can be deferred
       await checkSupabaseConnection();
     };
     
-    runDiagnostics();
+    // Delay diagnostics slightly to avoid blocking rendering
+    const timer = setTimeout(() => {
+      runDiagnostics();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [checkSupabaseConnection]);
   
   return {
