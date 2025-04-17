@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -72,7 +71,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
       
       // Ensure we have a consistent data structure
-      // This is especially important for the avatar/name display logic
       const profileData = {
         first_name: data?.first_name || null,
         last_name: data?.last_name || null,
@@ -80,10 +78,17 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         phone: data?.phone || null
       };
       
-      setProfile(profileData);
-      
-      // Log what we're setting in the state
-      console.log('Setting profile state to:', profileData);
+      // Only update state if the data is different from current state
+      if (!profile || 
+          profile.first_name !== profileData.first_name || 
+          profile.last_name !== profileData.last_name ||
+          profile.email !== profileData.email ||
+          profile.phone !== profileData.phone) {
+        console.log('Setting profile state to:', profileData);
+        setProfile(profileData);
+      } else {
+        console.log('Skipping profile state update - no changes detected');
+      }
     } catch (error: any) {
       console.error('Error in fetchProfile:', error.message);
       setError(error.message);

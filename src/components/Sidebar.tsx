@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -67,7 +66,7 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   });
   
   useEffect(() => {
-    if (user && (!profile || !profile.first_name)) {
+    if (user && (!profile || !profile.first_name || profile.first_name === '')) {
       console.log('Refreshing profile data for user:', user.id, {
         profile: profile,
         firstName: profile?.first_name,
@@ -83,7 +82,7 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
         condition: (!profile || !profile.first_name)
       });
     }
-  }, [user, profile, refreshProfile]);
+  }, [user, refreshProfile]);
 
   const handleSignOut = async () => {
     try {
