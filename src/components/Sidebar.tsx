@@ -77,47 +77,63 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
     }
   };
   
+  /**
+   * Get user display name following these exact rules:
+   * 1. If first AND last name exist -> "First Last"
+   * 2. If only first name exists -> "First"
+   * 3. If profile data is missing -> "guest"
+   * 4. If everything fails -> "guest"
+   */
   const getUserDisplayName = () => {
+    // If we're still loading, return loading
     if (loading) return t('loading');
     
-    // ONLY use first_name + last_name if available
-    if (profile?.first_name || profile?.last_name) {
-      const firstName = profile.first_name || '';
-      const lastName = profile.last_name || '';
-      const fullName = `${firstName} ${lastName}`.trim();
-      
-      // Only return if we actually have a name
-      if (fullName) {
-        return fullName;
+    // Check for first name (Rule 1 and 2)
+    if (profile?.first_name) {
+      // If last name also exists, return full name (Rule 1)
+      if (profile.last_name) {
+        return `${profile.first_name} ${profile.last_name}`;
       }
+      // If only first name exists, return just first name (Rule 2)
+      return profile.first_name;
     }
     
-
-    
+    // Default fallback to guest (Rules 3 and 4)
     return t('guest');
   };
   
+  /**
+   * Get user initials following these exact rules:
+   * 1. If first AND last name exist -> "FL" (first letter of first + last name)
+   * 2. If only first name exists -> "F" (first letter of first name)
+   * 3. If profile data is missing -> first two letters of email username
+   * 4. If everything fails -> "?"
+   */
   const getUserInitials = () => {
-    // STRICT PRIORITY: First letter of first name + first letter of last name
-    if (profile?.first_name || profile?.last_name) {
-      // Get first letter of first name if available
-      const firstInitial = profile.first_name ? profile.first_name.trim().charAt(0).toUpperCase() : '';
+    // Check for first name (Rule 1 and 2)
+    if (profile?.first_name) {
+      // Get first letter of first name, ensuring it's properly trimmed
+      const firstInitial = profile.first_name.trim().charAt(0).toUpperCase();
       
-      // Get first letter of last name if available
-      const lastInitial = profile.last_name ? profile.last_name.trim().charAt(0).toUpperCase() : '';
-      
-      // If we have at least one initial, return it/them
-      if (firstInitial || lastInitial) {
+      // If last name also exists, return both initials (Rule 1)
+      if (profile.last_name && profile.last_name.trim()) {
+        const lastInitial = profile.last_name.trim().charAt(0).toUpperCase();
         return `${firstInitial}${lastInitial}`;
       }
+      
+      // If only first name exists, return just first initial (Rule 2)
+      return firstInitial;
     }
     
-    // Fallback: ONLY if no profile name data is available
+    // Rule 3: If profile data is missing but email exists, use first two letters of username
     if (user?.email) {
       const username = user.email.split('@')[0];
-      return username.substring(0, 2).toUpperCase();
+      // Get first 2 chars and uppercase them, handling case where username might be only 1 char
+      const initials = username.substring(0, Math.min(2, username.length)).toUpperCase();
+      return initials;
     }
     
+    // Rule 4: Default fallback
     return '?';
   };
 

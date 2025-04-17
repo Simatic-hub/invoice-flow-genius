@@ -63,8 +63,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       console.log('Profile data retrieved:', data);
       
-      // Normalize the data to ensure we have consistent data structure
-      // This is important for the avatar/name display logic
+      // Ensure we have a consistent data structure
+      // This is especially important for the avatar/name display logic
       setProfile({
         first_name: data?.first_name || null,
         last_name: data?.last_name || null,
@@ -74,11 +74,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (error: any) {
       console.error('Error in fetchProfile:', error.message);
       setError(error.message);
-      toast({
-        title: t('error'),
-        description: t('failed_to_fetch_profile_data'),
-        variant: 'destructive'
-      });
+      // Don't show toast for normal errors, as this might happen frequently
+      // and would be annoying for users
     } finally {
       setLoading(false);
     }
@@ -125,6 +122,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const refreshProfile = async () => {
+    console.log('Explicitly refreshing profile data');
     await fetchProfile();
   };
 
