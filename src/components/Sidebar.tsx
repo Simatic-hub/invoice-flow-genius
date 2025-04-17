@@ -12,6 +12,7 @@ import {
   User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getRandomColor } from "@/lib/colors";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -55,7 +56,6 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const { profile, loading, refreshProfile } = useUserProfile();
   const { t } = useLanguage();
   
-  // Force a refresh of the profile data when the sidebar mounts
   useEffect(() => {
     if (user && (!profile || !profile.first_name)) {
       console.log('Refreshing profile data for user:', user.id);
@@ -66,7 +66,6 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      // We don't need to navigate here as the AuthProvider will handle redirection
     } catch (error) {
       console.error("Logout error:", error);
       toast({
@@ -77,7 +76,6 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
     }
   };
   
-  // Get user display name with improved fallback handling
   const getUserDisplayName = () => {
     if (loading) return t('loading');
     
@@ -88,14 +86,12 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
     }
     
     if (user?.email) {
-      // Only show the part before @ in email
       return user.email.split('@')[0];
     }
     
     return t('guest');
   };
   
-  // Get user initials with improved fallback logic
   const getUserInitials = () => {
     if (profile?.first_name || profile?.last_name) {
       const firstInitial = profile.first_name ? profile.first_name.charAt(0).toUpperCase() : '';
@@ -104,7 +100,6 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
     }
     
     if (user?.email) {
-      // Get first two characters of email username
       const username = user.email.split('@')[0];
       return username.substring(0, 2).toUpperCase();
     }
