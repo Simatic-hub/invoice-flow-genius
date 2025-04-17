@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,6 +39,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const fetchProfile = async () => {
     if (!user) {
       setLoading(false);
+      setProfile(null);
       return;
     }
 
@@ -53,20 +53,21 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .from('profiles')
         .select('first_name, last_name, email, phone')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
+        console.error('Error fetching profile:', error.message);
         throw error;
       }
       
       console.log('Profile data retrieved:', data);
       setProfile(data);
     } catch (error: any) {
-      console.error('Error fetching profile:', error.message);
+      console.error('Error in fetchProfile:', error.message);
       setError(error.message);
       toast({
         title: t('error'),
-        description: t('failed_to_fetch_profile_data') || 'Failed to fetch profile data',
+        description: t('failed_to_fetch_profile_data'),
         variant: 'destructive'
       });
     } finally {
@@ -93,7 +94,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw error;
       }
       
-      // Update the profile state with new data
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
       toast({
@@ -114,18 +114,17 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  // Added function to manually refresh profile data
   const refreshProfile = async () => {
     await fetchProfile();
   };
 
-  // Fetch profile when user changes
   useEffect(() => {
     if (user) {
-      console.log('User changed, fetching profile');
+      console.log('User changed or component mounted, fetching profile');
       fetchProfile();
     } else {
       setProfile(null);
+      setLoading(false);
     }
   }, [user]);
 

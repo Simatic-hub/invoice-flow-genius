@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -59,9 +58,9 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   // Force a refresh of the profile data when the sidebar mounts
   useEffect(() => {
     if (user && (!profile || !profile.first_name)) {
+      console.log('Refreshing profile data for user:', user.id);
       refreshProfile();
     }
-    console.log("Sidebar mounted, profile:", profile, "loading:", loading);
   }, [user]);
 
   const handleSignOut = async () => {
@@ -78,32 +77,41 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
     }
   };
   
-  // Get user display name
+  // Get user display name with improved fallback handling
   const getUserDisplayName = () => {
-    if (!profile) return user?.email || t('loading');
+    if (loading) return t('loading');
     
-    const firstName = profile.first_name || '';
-    const lastName = profile.last_name || '';
-    
-    if (firstName || lastName) {
+    if (profile?.first_name || profile?.last_name) {
+      const firstName = profile.first_name || '';
+      const lastName = profile.last_name || '';
       return `${firstName} ${lastName}`.trim();
     }
     
-    return user?.email || t('loading');
-  };
-  
-  // Get user initials for avatar
-  const getUserInitials = () => {
-    if (!profile || (!profile.first_name && !profile.last_name)) {
-      return user?.email?.charAt(0).toUpperCase() || '?';
+    if (user?.email) {
+      // Only show the part before @ in email
+      return user.email.split('@')[0];
     }
     
-    const firstInitial = profile.first_name ? profile.first_name.charAt(0).toUpperCase() : '';
-    const lastInitial = profile.last_name ? profile.last_name.charAt(0).toUpperCase() : '';
-    
-    return firstInitial + lastInitial || '?';
+    return t('guest');
   };
   
+  // Get user initials with improved fallback logic
+  const getUserInitials = () => {
+    if (profile?.first_name || profile?.last_name) {
+      const firstInitial = profile.first_name ? profile.first_name.charAt(0).toUpperCase() : '';
+      const lastInitial = profile.last_name ? profile.last_name.charAt(0).toUpperCase() : '';
+      return (firstInitial + lastInitial) || '?';
+    }
+    
+    if (user?.email) {
+      // Get first two characters of email username
+      const username = user.email.split('@')[0];
+      return username.substring(0, 2).toUpperCase();
+    }
+    
+    return '?';
+  };
+
   if (isMobile && !isSidebarOpen) return null;
 
   return (
@@ -155,15 +163,20 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3">
           <Avatar className="w-8 h-8 bg-sidebar-accent text-sidebar-accent-foreground">
-            <AvatarFallback>
+            <AvatarFallback className={cn(
+              getRandomColor(getUserDisplayName()),
+              "font-medium"
+            )}>
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-sidebar-foreground">
+            <span className="text-sm font-medium text-sidebar-foreground truncate">
               {getUserDisplayName()}
             </span>
-            <span className="text-xs text-sidebar-foreground/70">{t('free.version')}</span>
+            <span className="text-xs text-sidebar-foreground/70">
+              {t('free.version')}
+            </span>
           </div>
         </div>
       </div>
