@@ -92,10 +92,7 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
       }
     }
     
-    // Fallback: Only use email username if no profile names are available
-    if (user?.email) {
-      return user.email.split('@')[0];
-    }
+
     
     return t('guest');
   };
