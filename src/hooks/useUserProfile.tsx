@@ -61,16 +61,29 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw error;
       }
       
-      console.log('Profile data retrieved:', data);
+      // Log the raw data returned from Supabase
+      console.log('Raw profile data from Supabase:', data);
+      console.log('Profile data is null?', data === null);
+      console.log('Profile data shape:', {
+        first_name: data?.first_name,
+        last_name: data?.last_name,
+        email: data?.email,
+        phone: data?.phone
+      });
       
       // Ensure we have a consistent data structure
       // This is especially important for the avatar/name display logic
-      setProfile({
+      const profileData = {
         first_name: data?.first_name || null,
         last_name: data?.last_name || null,
         email: data?.email || user?.email || null,
         phone: data?.phone || null
-      });
+      };
+      
+      setProfile(profileData);
+      
+      // Log what we're setting in the state
+      console.log('Setting profile state to:', profileData);
     } catch (error: any) {
       console.error('Error in fetchProfile:', error.message);
       setError(error.message);

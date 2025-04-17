@@ -57,12 +57,33 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const { profile, loading, refreshProfile } = useUserProfile();
   const { t } = useLanguage();
   
+  console.log('Sidebar rendering with profile state:', {
+    profile,
+    loading,
+    userId: user?.id,
+    profileIsNull: profile === null,
+    firstName: profile?.first_name,
+    lastName: profile?.last_name
+  });
+  
   useEffect(() => {
     if (user && (!profile || !profile.first_name)) {
-      console.log('Refreshing profile data for user:', user.id);
+      console.log('Refreshing profile data for user:', user.id, {
+        profile: profile,
+        firstName: profile?.first_name,
+        profileIsNull: profile === null,
+        condition: (!profile || !profile.first_name)
+      });
       refreshProfile();
+    } else {
+      console.log('NOT refreshing profile - condition not met', {
+        hasUser: !!user,
+        profile: profile,
+        firstName: profile?.first_name,
+        condition: (!profile || !profile.first_name)
+      });
     }
-  }, [user]);
+  }, [user, profile, refreshProfile]);
 
   const handleSignOut = async () => {
     try {
@@ -85,6 +106,14 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
    * 4. If everything fails -> "guest"
    */
   const getUserDisplayName = () => {
+    // Log the inputs to getUserDisplayName
+    console.log('getUserDisplayName called with:', {
+      loading,
+      profile,
+      firstName: profile?.first_name,
+      lastName: profile?.last_name
+    });
+    
     // If we're still loading, return loading
     if (loading) return t('loading');
     
