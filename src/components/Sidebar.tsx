@@ -66,6 +66,13 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   });
   
   useEffect(() => {
+    console.log('📡 Sidebar useEffect check:', {
+      userId: user?.id,
+      profile,
+      firstName: profile?.first_name,
+      condition: (!profile || !profile.first_name || profile.first_name === '')
+    });
+
     if (user && (!profile || !profile.first_name || profile.first_name === '')) {
       console.log('Refreshing profile data for user:', user.id, {
         profile: profile,
@@ -97,71 +104,50 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
     }
   };
   
-  /**
-   * Get user display name following these exact rules:
-   * 1. If first AND last name exist -> "First Last"
-   * 2. If only first name exists -> "First"
-   * 3. If profile data is missing -> "guest"
-   * 4. If everything fails -> "guest"
-   */
   const getUserDisplayName = () => {
-    // Log the inputs to getUserDisplayName
-    console.log('getUserDisplayName called with:', {
+    console.log('🧾 getUserDisplayName input:', {
       loading,
       profile,
       firstName: profile?.first_name,
       lastName: profile?.last_name
     });
     
-    // If we're still loading, return loading
     if (loading) return t('loading');
     
-    // Check for first name (Rule 1 and 2)
     if (profile?.first_name) {
-      // If last name also exists, return full name (Rule 1)
       if (profile.last_name) {
         return `${profile.first_name} ${profile.last_name}`;
       }
-      // If only first name exists, return just first name (Rule 2)
       return profile.first_name;
     }
     
-    // Default fallback to guest (Rules 3 and 4)
     return t('guest');
   };
   
-  /**
-   * Get user initials following these exact rules:
-   * 1. If first AND last name exist -> "FL" (first letter of first + last name)
-   * 2. If only first name exists -> "F" (first letter of first name)
-   * 3. If profile data is missing -> first two letters of email username
-   * 4. If everything fails -> "?"
-   */
   const getUserInitials = () => {
-    // Check for first name (Rule 1 and 2)
+    console.log('🧾 getUserInitials input:', {
+      firstName: profile?.first_name,
+      lastName: profile?.last_name,
+      email: user?.email
+    });
+
     if (profile?.first_name) {
-      // Get first letter of first name, ensuring it's properly trimmed
       const firstInitial = profile.first_name.trim().charAt(0).toUpperCase();
       
-      // If last name also exists, return both initials (Rule 1)
       if (profile.last_name && profile.last_name.trim()) {
         const lastInitial = profile.last_name.trim().charAt(0).toUpperCase();
         return `${firstInitial}${lastInitial}`;
       }
       
-      // If only first name exists, return just first initial (Rule 2)
       return firstInitial;
     }
     
-    // Rule 3: If profile data is missing but email exists, use first two letters of username
     if (user?.email) {
       const username = user.email.split('@')[0];
-      // Get first 2 chars and uppercase them, handling case where username might be only 1 char
       const initials = username.substring(0, Math.min(2, username.length)).toUpperCase();
       return initials;
     }
     
-    // Rule 4: Default fallback
     return '?';
   };
 

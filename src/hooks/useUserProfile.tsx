@@ -47,30 +47,19 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
-      console.log('Fetching profile for user ID:', user.id);
-      
       const { data, error } = await supabase
         .from('profiles')
         .select('first_name, last_name, email, phone')
         .eq('id', user.id)
         .maybeSingle();
       
+      console.log('📦 Supabase profile fetch result:', { data, error });
+      
       if (error) {
         console.error('Error fetching profile:', error.message);
         throw error;
       }
       
-      // Log the raw data returned from Supabase
-      console.log('Raw profile data from Supabase:', data);
-      console.log('Profile data is null?', data === null);
-      console.log('Profile data shape:', {
-        first_name: data?.first_name,
-        last_name: data?.last_name,
-        email: data?.email,
-        phone: data?.phone
-      });
-      
-      // Ensure we have a consistent data structure
       const profileData = {
         first_name: data?.first_name || null,
         last_name: data?.last_name || null,
@@ -78,7 +67,20 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         phone: data?.phone || null
       };
       
-      // Only update state if the data is different from current state
+      console.log('🧾 Profile update context:', {
+        loading,
+        profile,
+        firstName: profile?.first_name,
+        lastName: profile?.last_name
+      });
+
+      console.log('🧾 Profile update input:', {
+        inputFirstName: profileData.first_name,
+        inputLastName: profileData.last_name,
+        currentProfileFirstName: profile?.first_name,
+        currentProfileLastName: profile?.last_name
+      });
+      
       if (!profile || 
           profile.first_name !== profileData.first_name || 
           profile.last_name !== profileData.last_name ||
@@ -92,8 +94,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (error: any) {
       console.error('Error in fetchProfile:', error.message);
       setError(error.message);
-      // Don't show toast for normal errors, as this might happen frequently
-      // and would be annoying for users
     } finally {
       setLoading(false);
     }
@@ -118,7 +118,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw error;
       }
       
-      // Update the local state with the new data
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
       toast({
