@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -79,12 +80,14 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const getUserDisplayName = () => {
     if (loading) return t('loading');
     
+    // Primary: Use first name + last name if either is available
     if (profile?.first_name || profile?.last_name) {
       const firstName = profile.first_name || '';
       const lastName = profile.last_name || '';
       return `${firstName} ${lastName}`.trim();
     }
     
+    // Fallback: Use email username if profile names are not available
     if (user?.email) {
       return user.email.split('@')[0];
     }
@@ -93,12 +96,18 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   };
   
   const getUserInitials = () => {
+    // Primary: Use first letter of first name + first letter of last name
     if (profile?.first_name || profile?.last_name) {
       const firstInitial = profile.first_name ? profile.first_name.charAt(0).toUpperCase() : '';
       const lastInitial = profile.last_name ? profile.last_name.charAt(0).toUpperCase() : '';
-      return (firstInitial + lastInitial) || '?';
+      
+      // If we have at least one of the names, return the available initial(s)
+      if (firstInitial || lastInitial) {
+        return (firstInitial + lastInitial) || '?';
+      }
     }
     
+    // Fallback: Use first two letters of email username
     if (user?.email) {
       const username = user.email.split('@')[0];
       return username.substring(0, 2).toUpperCase();

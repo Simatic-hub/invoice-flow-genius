@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -94,6 +95,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw error;
       }
       
+      // Update the local state with the new data
       setProfile(prev => prev ? { ...prev, ...updatedData } : null);
       
       toast({
