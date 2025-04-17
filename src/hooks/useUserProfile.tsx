@@ -62,7 +62,15 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
       
       console.log('Profile data retrieved:', data);
-      setProfile(data);
+      
+      // Normalize the data to ensure we have consistent data structure
+      // This is important for the avatar/name display logic
+      setProfile({
+        first_name: data?.first_name || null,
+        last_name: data?.last_name || null,
+        email: data?.email || user?.email || null,
+        phone: data?.phone || null
+      });
     } catch (error: any) {
       console.error('Error in fetchProfile:', error.message);
       setError(error.message);

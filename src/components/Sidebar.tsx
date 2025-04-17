@@ -80,14 +80,19 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   const getUserDisplayName = () => {
     if (loading) return t('loading');
     
-    // Primary: Use first name + last name if either is available
+    // ONLY use first_name + last_name if available
     if (profile?.first_name || profile?.last_name) {
       const firstName = profile.first_name || '';
       const lastName = profile.last_name || '';
-      return `${firstName} ${lastName}`.trim();
+      const fullName = `${firstName} ${lastName}`.trim();
+      
+      // Only return if we actually have a name
+      if (fullName) {
+        return fullName;
+      }
     }
     
-    // Fallback: Use email username if profile names are not available
+    // Fallback: Only use email username if no profile names are available
     if (user?.email) {
       return user.email.split('@')[0];
     }
@@ -96,18 +101,21 @@ const Sidebar = ({ isMobile, isSidebarOpen, toggleSidebar }: SidebarProps) => {
   };
   
   const getUserInitials = () => {
-    // Primary: Use first letter of first name + first letter of last name
+    // STRICT PRIORITY: First letter of first name + first letter of last name
     if (profile?.first_name || profile?.last_name) {
-      const firstInitial = profile.first_name ? profile.first_name.charAt(0).toUpperCase() : '';
-      const lastInitial = profile.last_name ? profile.last_name.charAt(0).toUpperCase() : '';
+      // Get first letter of first name if available
+      const firstInitial = profile.first_name ? profile.first_name.trim().charAt(0).toUpperCase() : '';
       
-      // If we have at least one of the names, return the available initial(s)
+      // Get first letter of last name if available
+      const lastInitial = profile.last_name ? profile.last_name.trim().charAt(0).toUpperCase() : '';
+      
+      // If we have at least one initial, return it/them
       if (firstInitial || lastInitial) {
-        return (firstInitial + lastInitial) || '?';
+        return `${firstInitial}${lastInitial}`;
       }
     }
     
-    // Fallback: Use first two letters of email username
+    // Fallback: ONLY if no profile name data is available
     if (user?.email) {
       const username = user.email.split('@')[0];
       return username.substring(0, 2).toUpperCase();
